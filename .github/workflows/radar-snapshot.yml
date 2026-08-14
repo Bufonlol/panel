@@ -1,0 +1,39 @@
+name: Snapshot Radar Local V2
+
+on:
+  push:
+    branches:
+      - radar-local-host
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+
+      - name: Fetch Radar Local V2 HTML
+        run: |
+          curl --fail --silent --show-error \
+            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-ui-v2' \
+            -o index.html
+          test -s index.html
+          head -c 15 index.html | grep -qi '<!doctype html'
+
+      - name: Commit snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          if git diff --cached --quiet; then
+            echo 'No changes to commit'
+            exit 0
+          fi
+          git commit -m 'chore: update Radar Local V2 snapshot'
+          git push origin radar-local-host
