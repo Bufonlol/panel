@@ -8,6 +8,12 @@ let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
 html=window.patchRadarProductV4(html);
+html=html.replace('function renderToday(){',"function todayOpen(id,contact){selectBusiness(id,false);if(contact)setInspectorTab('contact')}\nfunction googleOpenUrl(url){if(/^https?:\\/\\//i.test(String(url||'')))window.open(url,'_blank')}\nfunction renderToday(){");
+html=html.replaceAll('onclick="selectBusiness(\'\'+b.denueId+\'\',false)"','data-id="'+"'+safe(b.denueId)+'"+'" onclick="todayOpen(this.dataset.id,false)"');
+html=html.replaceAll('onclick="event.stopPropagation();selectBusiness(\'\'+b.denueId+\'\',false);setInspectorTab(\'contact\')"','data-id="'+"'+safe(b.denueId)+'"+'" onclick="event.stopPropagation();todayOpen(this.dataset.id,true)"');
+html=html.replaceAll('onclick="confirmGooglePlace(\'\'+p.id+\'\')"','data-place-id="'+"'+safe(p.id)+'"+'" onclick="confirmGooglePlace(this.dataset.placeId)"');
+html=html.replaceAll('onclick="window.open(\'\'+String(p.mapsUrl).replace(/\'/g,\'%27\')+\'\',\'_blank\')"','data-url="'+"'+safe(p.mapsUrl)+'"+'" onclick="googleOpenUrl(this.dataset.url)"');
+html=html.replaceAll('onclick="window.open(\'\'+String(p.website).replace(/\'/g,\'%27\')+\'\',\'_blank\')"','data-url="'+"'+safe(p.website)+'"+'" onclick="googleOpenUrl(this.dataset.url)"');
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 fs.mkdirSync('dist',{recursive:true});
