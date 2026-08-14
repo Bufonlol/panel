@@ -16,6 +16,7 @@ html=html.replaceAll('onclick="confirmGooglePlace(\'\'+p.id+\'\')"','data-place-
 html=html.replaceAll('onclick="window.open(\'\'+String(p.mapsUrl).replace(/\'/g,\'%27\')+\'\',\'_blank\')"','data-url="'+"'+safe(p.mapsUrl)+'"+'" onclick="googleOpenUrl(this.dataset.url)"');
 html=html.replaceAll('onclick="window.open(\'\'+String(p.website).replace(/\'/g,\'%27\')+\'\',\'_blank\')"','data-url="'+"'+safe(p.website)+'"+'" onclick="googleOpenUrl(this.dataset.url)"');
 html=window.patchRadarSalesV5(html);
+html=html.replaceAll('onclick="setInspectorTab(\'contact\')"','onclick="setInspectorTab(&quot;contact&quot;)"');
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 fs.mkdirSync('dist',{recursive:true});
