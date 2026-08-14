@@ -1,0 +1,11 @@
+const fs=require('fs');
+const vm=require('vm');
+global.window={};
+vm.runInThisContext(fs.readFileSync('analysis-patch-v3.js','utf8'),{filename:'analysis-patch-v3.js'});
+vm.runInThisContext(fs.readFileSync('reports-content-v3.js','utf8'),{filename:'reports-content-v3.js'});
+let html=fs.readFileSync('index.html','utf8');
+html=window.patchRadarAnalysisV3(html);
+html=window.patchRadarReportsContentV3(html);
+fs.mkdirSync('dist',{recursive:true});
+fs.writeFileSync('dist/index.html',html);
+console.log('Radar Local V3 built:',Buffer.byteLength(html),'bytes');
