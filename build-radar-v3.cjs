@@ -4,6 +4,7 @@ global.window={};
 vm.runInThisContext(fs.readFileSync('analysis-patch-v3.js','utf8'),{filename:'analysis-patch-v3.js'});
 vm.runInThisContext(fs.readFileSync('reports-content-v3.js','utf8'),{filename:'reports-content-v3.js'});
 vm.runInThisContext(fs.readFileSync('product-patch-v4.js','utf8'),{filename:'product-patch-v4.js'});
+vm.runInThisContext(fs.readFileSync('sales-os-patch-v5.js','utf8'),{filename:'sales-os-patch-v5.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -14,8 +15,9 @@ html=html.replaceAll('onclick="event.stopPropagation();selectBusiness(\'\'+b.den
 html=html.replaceAll('onclick="confirmGooglePlace(\'\'+p.id+\'\')"','data-place-id="'+"'+safe(p.id)+'"+'" onclick="confirmGooglePlace(this.dataset.placeId)"');
 html=html.replaceAll('onclick="window.open(\'\'+String(p.mapsUrl).replace(/\'/g,\'%27\')+\'\',\'_blank\')"','data-url="'+"'+safe(p.mapsUrl)+'"+'" onclick="googleOpenUrl(this.dataset.url)"');
 html=html.replaceAll('onclick="window.open(\'\'+String(p.website).replace(/\'/g,\'%27\')+\'\',\'_blank\')"','data-url="'+"'+safe(p.website)+'"+'" onclick="googleOpenUrl(this.dataset.url)"');
+html=window.patchRadarSalesV5(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V4 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V5 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
