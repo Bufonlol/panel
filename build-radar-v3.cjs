@@ -8,6 +8,8 @@ let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
 html=window.patchRadarProductV4(html);
+let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
+if(!checked)throw new Error('No inline scripts found for validation');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V4 built:',Buffer.byteLength(html),'bytes');
+console.log('Radar Local V4 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
