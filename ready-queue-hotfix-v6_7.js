@@ -1,0 +1,17 @@
+window.patchRadarReadyFixV67=function(html){
+const JS=String.raw`
+(function(){
+function v67Ready(b){return b?.researchStatus==='reviewed'&&Number(b.researchConfidence||0)>=70&&b.operationalStatus==='operational'&&!!(b.phone||b.email)&&b.stage!=='Cliente'&&b.stage!=='Descartado'}
+function v67ReadyList(){return (Array.isArray(data)?data:[]).filter(v67Ready).slice().sort((a,z)=>{const pa=typeof salesProfile==='function'?salesProfile(a).priority:(a.opportunityScore||0),pz=typeof salesProfile==='function'?salesProfile(z).priority:(z.opportunityScore||0);return pz-pa})}
+function v67Channel(b){try{const ch=typeof v6Channel==='function'?v6Channel(b):{key:b.phone?'whatsapp':'email'};return typeof v6ChannelLabel==='function'?v6ChannelLabel(ch.key):(b.phone?'WhatsApp':'Email')}catch{return b.phone?'WhatsApp':'Email'}}
+function v67Row(b){const p=typeof salesProfile==='function'?salesProfile(b):{priority:b.opportunityScore||0,top:{name:'Solución digital',ticket:0}},action=typeof v6NextAction==='function'?v6NextAction(b):'Contactar';return '<div class="v6-row sales-lead-open" data-lead-id="'+safe(b.denueId)+'"><div class="v6-score"><b>'+Math.round(p.priority||0)+'</b><span>PRIOR.</span></div><div class="v6-name"><b>'+safe(b.name)+' <span class="research-inline ready">LISTO</span></b><span>'+safe(b.sector)+' · '+safe(action)+'</span></div><div class="v6-cell"><span>Investigación</span><div class="v6-problem">Confianza '+Math.round(b.researchConfidence||0)+'%</div></div><div class="v6-cell"><span>Oferta</span><strong>'+safe(p.top?.name||'Solución digital')+'</strong></div><div class="v6-cell"><span>Canal</span><div class="v6-channel">'+safe(v67Channel(b))+'</div></div><div class="v6-cell"><span>Ticket</span><strong>'+money(Number(p.top?.ticket||0))+'</strong></div><button class="btn btn-primary sales-contact-open" data-lead-id="'+safe(b.denueId)+'">Contactar</button></div>'}
+function v67PaintReady(){const btn=document.querySelector('#todayContent [data-research-ready]');if(!btn)return;const rows=v67ReadyList();const n=btn.querySelector('strong');if(n)n.textContent=String(rows.length);const small=btn.querySelector('small');if(small)small.textContent='Investigados + operando + contacto';if(!btn.classList.contains('on'))return;const panel=document.querySelector('#todayContent .v6-panel'),mission=document.querySelector('#todayContent .v6-mission');if(panel){const h=panel.querySelector('.v6-head h3'),p=panel.querySelector('.v6-head p');if(h)h.textContent='Prospectos preparados';if(p)p.textContent='Cola independiente de los filtros de exploración: aquí sólo aparecen leads ya investigados y contactables.'}if(mission)mission.innerHTML='<div class="v6-row head"><span>Prioridad</span><span>Negocio</span><span>Investigación</span><span>Oferta</span><span>Canal</span><span>Ticket</span><span></span></div>'+rows.map(v67Row).join('')+(rows.length?'':'<div class="helper" style="padding:18px">Todavía no hay prospectos preparados.</div>')}
+if(typeof renderTodayV5==='function'){const base=renderTodayV5;renderTodayV5=function(){const r=base.apply(this,arguments);setTimeout(v67PaintReady,0);return r}}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-research-ready]'))setTimeout(v67PaintReady,0)});
+setTimeout(v67PaintReady,350);
+})();
+`;
+html=html.replace('</body>','<script>'+JS+'</script></body>');
+html=html.replaceAll('Sales Intelligence V6.6','Sales Intelligence V6.7');
+return html;
+};
