@@ -17,6 +17,7 @@ vm.runInThisContext(fs.readFileSync('route-export-chatgpt-v7_1.js','utf8'),{file
 vm.runInThisContext(fs.readFileSync('prospecting-fit-patch-v7_2.js','utf8'),{filename:'prospecting-fit-patch-v7_2.js'});
 vm.runInThisContext(fs.readFileSync('route-visit-default-hotfix-v7_2_1.js','utf8'),{filename:'route-visit-default-hotfix-v7_2_1.js'});
 vm.runInThisContext(fs.readFileSync('researched-only-go-now-v7_2_2.js','utf8'),{filename:'researched-only-go-now-v7_2_2.js'});
+vm.runInThisContext(fs.readFileSync('weekly-prospecting-os-v8.js','utf8'),{filename:'weekly-prospecting-os-v8.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -41,12 +42,14 @@ html=window.patchRadarRouteExportV71(html);
 html=window.patchRadarProspectingFitV72(html);
 html=window.patchRadarVisitRouteDefaultV721(html);
 html=window.patchRadarResearchedGoNowV722(html);
+html=window.patchRadarWeeklyOSV8(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
 if(!html.includes('Fit para prospectar')||!html.includes('prospectingProfile')||!html.includes('routeProspectingFit'))throw new Error('V7.2 prospecting fit missing');
 if(!html.includes('routeVisitDefault721')||!html.includes('Sólo IR AHORA'))throw new Error('V7.2.1 visit route default missing');
 if(!html.includes('heuristic_unverified')||!html.includes('INVESTIGAR PRIMERO'))throw new Error('V7.2.2 researched-only go-now missing');
+if(!html.includes('Weekly Prospecting OS · V8')||!html.includes('v8PrepareRoute')||!html.includes('weekView'))throw new Error('V8 weekly prospecting OS missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V7.2.2 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V8 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
