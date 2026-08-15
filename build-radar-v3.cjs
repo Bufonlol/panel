@@ -20,6 +20,7 @@ vm.runInThisContext(fs.readFileSync('researched-only-go-now-v7_2_2.js','utf8'),{
 vm.runInThisContext(fs.readFileSync('weekly-prospecting-os-v8.js','utf8'),{filename:'weekly-prospecting-os-v8.js'});
 vm.runInThisContext(fs.readFileSync('performance-patch-v8_1.js','utf8'),{filename:'performance-patch-v8_1.js'});
 vm.runInThisContext(fs.readFileSync('field-proposal-patch-v8_2.js','utf8'),{filename:'field-proposal-patch-v8_2.js'});
+vm.runInThisContext(fs.readFileSync('manual-rental-clients-patch-v8_3.js','utf8'),{filename:'manual-rental-clients-patch-v8_3.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -47,6 +48,7 @@ html=window.patchRadarResearchedGoNowV722(html);
 html=window.patchRadarWeeklyOSV8(html);
 html=window.patchRadarPerformanceV81(html);
 html=window.patchRadarFieldProposalV82(html);
+html=window.patchRadarManualRentalsV83(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
@@ -56,6 +58,7 @@ if(!html.includes('heuristic_unverified')||!html.includes('INVESTIGAR PRIMERO'))
 if(!html.includes('Weekly Prospecting OS · V8')||!html.includes('v8PrepareRoute')||!html.includes('weekView'))throw new Error('V8 weekly prospecting OS missing');
 if(!html.includes('radarPerfV81')||!html.includes("version:'8.1'"))throw new Error('V8.1 performance patch missing');
 if(!html.includes('PROPUESTA DE CAMPO · V8.2')||!html.includes('v82OpenProposal')||!html.includes('Ver propuesta'))throw new Error('V8.2 field proposal missing');
+if(!html.includes('radarManualRentalsV83')||!html.includes('+ Cliente manual'))throw new Error('V8.3 manual rental clients missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V8.2 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V8.3 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
