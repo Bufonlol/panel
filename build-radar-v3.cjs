@@ -43,7 +43,7 @@ let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
 if(!html.includes('Fit para prospectar')||!html.includes('prospectingProfile')||!html.includes('routeProspectingFit'))throw new Error('V7.2 prospecting fit missing');
-if(!html.includes('Sólo IR AHORA')||!html.includes("||'go_now'"))throw new Error('V7.2.1 visit route default missing');
+if(!html.includes('routeVisitDefault721')||!html.includes('Sólo IR AHORA'))throw new Error('V7.2.1 visit route default missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
 console.log('Radar Local V7.2.1 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
