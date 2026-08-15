@@ -10,7 +10,7 @@ function v71Text(v,fallback='No disponible'){const s=String(v??'').trim();return
 function v71List(v){return Array.isArray(v)?v.filter(Boolean):[]}
 function v71ResearchLabel(b){if(b.researchStatus==='reviewed'&&Number(b.researchConfidence||0)>=70&&b.operationalStatus==='operational'&&(b.phone||b.email))return'Listo para contactar';if(b.researchStatus==='reviewed')return'Investigado';if(b.researchStatus==='needs_review')return'Requiere revisión';return'Sin investigación enriquecida'}
 function v71Offer(b){try{const p=typeof salesProfile==='function'?salesProfile(b):null;if(!p)return null;const pr=p.pricing||{};return{priority:Math.round(Number(p.priority)||0),problem:p.top?.problem||'No definido',solution:p.top?.name||'Solución digital',model:p.commercialModel||'sale',fit:Number(p.recurringFit)||0,sale:Number(pr.sale??p.top?.ticket??0)||0,setup:Number(pr.setup)||0,monthly:Number(pr.monthly)||0,term:Number(pr.term)||0,contract:Number(pr.contract)||0,probability:Number(p.probability)||0}}catch{return null}}
-function v71Money(n){try{return typeof money==='function'?money(Number(n)||0):'$'+Number(n||0).toLocaleString('es-MX')}catch{return'$'+Number(n||0).toLocaleString('es-MX')}}
+function v71Money(n){try{if(typeof money==='function')return money(Number(n)||0)}catch{}return String.fromCharCode(36)+Number(n||0).toLocaleString('es-MX')}
 function v71Block(b,i){const o=v71Offer(b),src=v71List(b.researchSources).filter(x=>/^https?:\/\//i.test(String(x))).slice(0,8);const social=[b.facebookUrl&&'Facebook: '+b.facebookUrl,b.instagramUrl&&'Instagram: '+b.instagramUrl,b.tiktokUrl&&'TikTok: '+b.tiktokUrl].filter(Boolean);return [
 '============================================================',
 'PARADA '+(i+1)+' · '+v71Text(b.name,'Negocio'),
