@@ -5,7 +5,7 @@ if(!html.includes(OLD_RENDER_ALL))throw new Error('V8.1: eager renderAll signatu
 html=html.replace(OLD_RENDER_ALL,NEW_RENDER_ALL);
 const JS=String.raw`
 (function(){
-function perfLater(fn){if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{fn()}catch(e){console.warn('Radar render',e)}});else setTimeout(()=>{try{fn()}catch(e){console.warn('Radar render',e)},0})}
+function perfLater(fn){if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{fn()}catch(e){console.warn('Radar render',e)}});else setTimeout(()=>{try{fn()}catch(e){console.warn('Radar render',e)}},0)}
 function renderActive(fit){
   const m=typeof module!=='undefined'?module:'radar';
   if(m==='radar'){
@@ -48,7 +48,6 @@ function renderActive(fit){
     perfLater(()=>{const active=document.querySelector('[data-v7-rfilter].on');if(active)active.click()});
   }
 }
-// Final runtime override protects later wrappers too: only the active screen is rebuilt.
 renderAll=function(fit){renderActive(fit)};
 const setModulePerfBase=setModule;
 setModule=function(v){
