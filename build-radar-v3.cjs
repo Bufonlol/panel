@@ -15,6 +15,7 @@ vm.runInThisContext(fs.readFileSync('ready-queue-hotfix-v6_7.js','utf8'),{filena
 vm.runInThisContext(fs.readFileSync('revenue-os-patch-v7.js','utf8'),{filename:'revenue-os-patch-v7.js'});
 vm.runInThisContext(fs.readFileSync('route-export-chatgpt-v7_1.js','utf8'),{filename:'route-export-chatgpt-v7_1.js'});
 vm.runInThisContext(fs.readFileSync('prospecting-fit-patch-v7_2.js','utf8'),{filename:'prospecting-fit-patch-v7_2.js'});
+vm.runInThisContext(fs.readFileSync('route-visit-default-hotfix-v7_2_1.js','utf8'),{filename:'route-visit-default-hotfix-v7_2_1.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -37,10 +38,12 @@ html=window.patchRadarReadyFixV67(html);
 html=window.patchRadarRevenueV7(html);
 html=window.patchRadarRouteExportV71(html);
 html=window.patchRadarProspectingFitV72(html);
+html=window.patchRadarVisitRouteDefaultV721(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
 if(!html.includes('Fit para prospectar')||!html.includes('prospectingProfile')||!html.includes('routeProspectingFit'))throw new Error('V7.2 prospecting fit missing');
+if(!html.includes('Sólo IR AHORA')||!html.includes("||'go_now'"))throw new Error('V7.2.1 visit route default missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V7.2 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V7.2.1 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
