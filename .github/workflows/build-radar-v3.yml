@@ -1,4 +1,4 @@
-name: Build Radar Local V3
+name: Build Radar Local V7
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         with:
           ref: radar-local-host
 
-      - name: Build V3 bundle
+      - name: Build V7 bundle
         run: node build-radar-v3.cjs
 
       - name: Smoke test Radar services
@@ -55,11 +55,33 @@ jobs:
             'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-sales?action=dashboard',
             { 'x-radar-device': device }
           );
-          if (typeof sales.attempts !== 'number' || !Array.isArray(sales.byChannel)) {
-            console.error('Radar Sales returned an unexpected dashboard shape');
+          if (typeof sales.attempts !== 'number' || !Array.isArray(sales.byChannel) || !Array.isArray(sales.byModel)) {
+            console.error('Radar Sales returned an unexpected V7 dashboard shape');
             process.exit(1);
           }
-          console.log(`Radar Sales OK: ${sales.attempts} activities in 30d`);
+          console.log(`Radar Sales OK: ${sales.attempts} activities in 30d; rental-aware`);
+
+          const rentals = await getJson(
+            'Radar Rentals',
+            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-rentals?action=dashboard',
+            { 'x-radar-device': device }
+          );
+          if (!Array.isArray(rentals.rentals) || typeof rentals.metrics?.mrr !== 'number' || typeof rentals.metrics?.active !== 'number') {
+            console.error('Radar Rentals returned an unexpected dashboard shape');
+            process.exit(1);
+          }
+          console.log(`Radar Rentals OK: ${rentals.metrics.active} active; MRR ${rentals.metrics.mrr}`);
+
+          const catalog = await getJson(
+            'Radar Rental Catalog',
+            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-rentals?action=catalog',
+            { 'x-radar-device': device }
+          );
+          if (!Array.isArray(catalog.catalog) || catalog.catalog.length < 5 || !catalog.catalog.every(x => typeof x.rental_monthly === 'number')) {
+            console.error('Radar Rental Catalog returned invalid pricing data');
+            process.exit(1);
+          }
+          console.log(`Radar Rental Catalog OK: ${catalog.catalog.length} services`);
 
           const zones = await getJson(
             'Radar Zones',
@@ -92,6 +114,6 @@ jobs:
             echo 'No changes to commit'
             exit 0
           fi
-          git commit -m 'build: update Radar Local V3 dist'
+          git commit -m 'build: update Radar Local V7 dist'
           git pull --rebase origin radar-local-host
           git push origin radar-local-host
