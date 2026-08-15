@@ -7,6 +7,7 @@ vm.runInThisContext(fs.readFileSync('product-patch-v4.js','utf8'),{filename:'pro
 vm.runInThisContext(fs.readFileSync('sales-os-patch-v5.js','utf8'),{filename:'sales-os-patch-v5.js'});
 vm.runInThisContext(fs.readFileSync('sales-os-patch-v6.js','utf8'),{filename:'sales-os-patch-v6.js'});
 vm.runInThisContext(fs.readFileSync('route-planner-patch-v6_2.js','utf8'),{filename:'route-planner-patch-v6_2.js'});
+vm.runInThisContext(fs.readFileSync('route-planner-finalize-v6_3.js','utf8'),{filename:'route-planner-finalize-v6_3.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -21,8 +22,9 @@ html=window.patchRadarSalesV5(html);
 html=html.replaceAll('onclick="setInspectorTab(\'contact\')"','onclick="setInspectorTab(&quot;contact&quot;)"');
 html=window.patchRadarSalesV6(html);
 html=window.patchRadarRoutesV62(html);
+html=window.patchRadarRoutesFinalizeV63(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V6.2 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V6.3 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
