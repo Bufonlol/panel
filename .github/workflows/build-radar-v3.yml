@@ -22,6 +22,28 @@ jobs:
       - name: Build V3 bundle
         run: node build-radar-v3.cjs
 
+      - name: Smoke test Radar API
+        run: |
+          node --input-type=module <<'NODE'
+          const url = 'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-api?action=businesses&city=Orizaba&limit=1000';
+          const res = await fetch(url, { headers: { 'x-radar-device': 'radar-ci-smoke-device-000000000001' } });
+          const text = await res.text();
+          if (!res.ok) {
+            console.error('Radar API failed:', res.status, text.slice(0, 1000));
+            process.exit(1);
+          }
+          let body;
+          try { body = JSON.parse(text); } catch {
+            console.error('Radar API returned invalid JSON');
+            process.exit(1);
+          }
+          if (!Array.isArray(body.businesses) || body.businesses.length === 0) {
+            console.error('Radar API returned no businesses');
+            process.exit(1);
+          }
+          console.log(`Radar API OK: ${body.businesses.length} businesses returned`);
+          NODE
+
       - name: Commit dist
         run: |
           git config user.name 'github-actions[bot]'
