@@ -1,7 +1,11 @@
 window.patchRadarPerformanceV81=function(html){
+const OLD_RENDER_ALL="function renderAll(fit=false){renderTodayV5();renderKPIs();renderNearby();renderLeads();renderPipeline();renderVerify();renderReports();renderSalesReportAddon();renderInspector();drawMap(fit)}";
+const NEW_RENDER_ALL="function renderAll(fit=false){const m=typeof module!=='undefined'?module:'radar';if(m==='radar'){renderKPIs();renderNearby();renderInspector();drawMap(fit);return}if(m==='today'){renderTodayV5();renderInspector();return}if(m==='leads'){renderLeads();renderInspector();return}if(m==='pipeline'){renderPipeline();renderInspector();return}if(m==='verify'){renderVerify();renderInspector();return}if(m==='reports'){renderReports();renderSalesReportAddon();return}}";
+if(!html.includes(OLD_RENDER_ALL))throw new Error('V8.1: eager renderAll signature not found');
+html=html.replace(OLD_RENDER_ALL,NEW_RENDER_ALL);
 const JS=String.raw`
 (function(){
-function perfLater(fn){if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{fn()}catch(e){console.warn('Radar render',e)}});else setTimeout(()=>{try{fn()}catch(e){console.warn('Radar render',e)}},0)}
+function perfLater(fn){if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{fn()}catch(e){console.warn('Radar render',e)}});else setTimeout(()=>{try{fn()}catch(e){console.warn('Radar render',e)},0})}
 function renderActive(fit){
   const m=typeof module!=='undefined'?module:'radar';
   if(m==='radar'){
@@ -44,25 +48,19 @@ function renderActive(fit){
     perfLater(()=>{const active=document.querySelector('[data-v7-rfilter].on');if(active)active.click()});
   }
 }
-// The old renderAll eagerly rebuilt every hidden module on each load/filter change.
-// Keep the public function name but render only what the user can currently see.
+// Final runtime override protects later wrappers too: only the active screen is rebuilt.
 renderAll=function(fit){renderActive(fit)};
-
 const setModulePerfBase=setModule;
 setModule=function(v){
   const r=setModulePerfBase(v);
-  // V7/V8 own their specialized screens. Base modules need an explicit lazy render now.
   if(['radar','today','leads','pipeline','verify','reports'].includes(v))perfLater(()=>renderActive(false));
   return r;
 };
-
-// Coalesce rapid filter changes into a single paint. Base filterRender still calls renderAll,
-// but this prevents hidden panels from being rebuilt and yields to the browser between paints.
-let lastPaint=0;
 window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1'};
 })();
 `;
 html=html.replace('</body>','<script>'+JS+'</script></body>');
+html=html.replaceAll('Weekly Prospecting OS V8</title>','Weekly Prospecting OS V8.1</title>');
 html=html.replaceAll('Sales Intelligence V8</title>','Sales Intelligence V8.1</title>');
 return html;
 };
