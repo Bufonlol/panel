@@ -22,26 +22,54 @@ jobs:
       - name: Build V3 bundle
         run: node build-radar-v3.cjs
 
-      - name: Smoke test Radar API
+      - name: Smoke test Radar services
         run: |
           node --input-type=module <<'NODE'
-          const url = 'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-api?action=businesses&city=Orizaba&limit=1000';
-          const res = await fetch(url, { headers: { 'x-radar-device': 'radar-ci-smoke-device-000000000001' } });
-          const text = await res.text();
-          if (!res.ok) {
-            console.error('Radar API failed:', res.status, text.slice(0, 1000));
-            process.exit(1);
+          const device = 'radar-ci-smoke-device-000000000001';
+          async function getJson(name, url, headers={}) {
+            const res = await fetch(url, { headers });
+            const text = await res.text();
+            if (!res.ok) {
+              console.error(`${name} failed:`, res.status, text.slice(0, 1000));
+              process.exit(1);
+            }
+            try { return JSON.parse(text); } catch {
+              console.error(`${name} returned invalid JSON`);
+              process.exit(1);
+            }
           }
-          let body;
-          try { body = JSON.parse(text); } catch {
-            console.error('Radar API returned invalid JSON');
-            process.exit(1);
-          }
-          if (!Array.isArray(body.businesses) || body.businesses.length === 0) {
+
+          const api = await getJson(
+            'Radar API',
+            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-api?action=businesses&city=Orizaba&limit=1000',
+            { 'x-radar-device': device }
+          );
+          if (!Array.isArray(api.businesses) || api.businesses.length === 0) {
             console.error('Radar API returned no businesses');
             process.exit(1);
           }
-          console.log(`Radar API OK: ${body.businesses.length} businesses returned`);
+          console.log(`Radar API OK: ${api.businesses.length} businesses returned`);
+
+          const sales = await getJson(
+            'Radar Sales',
+            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-sales?action=dashboard',
+            { 'x-radar-device': device }
+          );
+          if (typeof sales.attempts !== 'number' || !Array.isArray(sales.byChannel)) {
+            console.error('Radar Sales returned an unexpected dashboard shape');
+            process.exit(1);
+          }
+          console.log(`Radar Sales OK: ${sales.attempts} activities in 30d`);
+
+          const zones = await getJson(
+            'Radar Zones',
+            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-zones'
+          );
+          if (!Array.isArray(zones.zones) || !Array.isArray(zones.sectors) || !Array.isArray(zones.cities)) {
+            console.error('Radar Zones returned invalid metadata');
+            process.exit(1);
+          }
+          console.log(`Radar Zones OK: ${zones.zones.length} zones, ${zones.sectors.length} sectors`);
           NODE
 
       - name: Commit dist
