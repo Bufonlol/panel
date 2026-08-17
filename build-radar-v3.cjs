@@ -29,6 +29,7 @@ vm.runInThisContext(fs.readFileSync('mobile-field-ux-patch-v8_7_1.js','utf8'),{f
 vm.runInThisContext(fs.readFileSync('visit-mode-patch-v8_8.js','utf8'),{filename:'visit-mode-patch-v8_8.js'});
 vm.runInThisContext(fs.readFileSync('visit-mobile-detail-patch-v8_9.js','utf8'),{filename:'visit-mobile-detail-patch-v8_9.js'});
 vm.runInThisContext(fs.readFileSync('visit-hours-patch-v9_0.js','utf8'),{filename:'visit-hours-patch-v9_0.js'});
+vm.runInThisContext(fs.readFileSync('visit-itinerary-patch-v9_1.js','utf8'),{filename:'visit-itinerary-patch-v9_1.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -65,6 +66,7 @@ html=window.patchRadarMobileFieldV871(html);
 html=window.patchRadarVisitModeV88(html);
 html=window.patchRadarVisitMobileV89(html);
 html=window.patchRadarVisitHoursV90(html);
+html=window.patchRadarVisitItineraryV91(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
@@ -82,7 +84,8 @@ if(!html.includes('radarCoyoDemosV86')||!html.includes('Demo COYO')||!html.inclu
 if(!html.includes('radarMobileFieldV871')||!html.includes('v871-more-grid'))throw new Error('V8.7 mobile field UX missing');
 if(!html.includes('radarVisitModeV88')||!html.includes('MODO VISITAS · V8.8')||!html.includes('data-v88-demo'))throw new Error('V8.8 visit mode missing');
 if(!html.includes('radarVisitMobileV89')||!html.includes('v89-detail'))throw new Error('V8.9 mobile visit detail missing');
-if(!html.includes('radarVisitHoursV90')||!html.includes('v90-hours')||!html.includes('Weekly Prospecting OS V9.0'))throw new Error('V9.0 business hours missing');
+if(!html.includes('radarVisitHoursV90')||!html.includes('v90-hours'))throw new Error('V9.0 business hours missing');
+if(!html.includes('radarVisitItineraryV91')||!html.includes('v91-agenda')||!html.includes('Weekly Prospecting OS V9.1')||!html.includes('Armar horario'))throw new Error('V9.1 sequential itinerary missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V9.0 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V9.1 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
