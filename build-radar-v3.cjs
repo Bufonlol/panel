@@ -38,7 +38,7 @@ vm.runInThisContext(fs.readFileSync('demo-edge-fastpath-v9_6.js','utf8'),{filena
 vm.runInThisContext(fs.readFileSync('operational-safety-patch-v9_8.js','utf8'),{filename:'operational-safety-patch-v9_8.js'});
 vm.runInThisContext(fs.readFileSync('visit-hours-sync-patch-v9_9.js','utf8'),{filename:'visit-hours-sync-patch-v9_9.js'});
 vm.runInThisContext(fs.readFileSync('demo-experience-patch-v10.js','utf8'),{filename:'demo-experience-patch-v10.js'});
-vm.runInThisContext(fs.readFileSync('visit-today-route-patch-v10_3.js','utf8'),{filename:'visit-today-route-patch-v10_3.js'});
+vm.runInThisContext(fs.readFileSync('visit-today-route-patch-v10_4.js','utf8'),{filename:'visit-today-route-patch-v10_4.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -84,7 +84,7 @@ html=window.patchRadarDemoEdgeFastpathV96(html);
 html=window.patchRadarOperationalSafetyV98(html);
 html=window.patchRadarVisitHoursSyncV99(html);
 html=window.patchRadarDemoExperienceV10(html);
-html=window.patchRadarVisitTodayRouteV103(html);
+html=window.patchRadarVisitTodayRouteV104(html);
 let checked=1;if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
 if(!html.includes('Fit para prospectar')||!html.includes('prospectingProfile')||!html.includes('routeProspectingFit'))throw new Error('V7.2 prospecting fit missing');
@@ -111,7 +111,7 @@ if(!html.includes('radarDemoEdgeFastpathV96'))throw new Error('V9.6 demo fastpat
 if(!html.includes('radarOperationalSafetyV98')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');
 if(!html.includes('radarVisitHoursSyncV99')||!html.includes('Weekly Prospecting OS V9.9'))throw new Error('V9.9 hours sync missing');
 if(!html.includes('radarDemoExperienceV10')||!html.includes('DEMO INTERACTIVA')||!html.includes('data-view-panel="owner"')||!html.includes("'11682280':{name:'VIVE CAFÉ VERACRUZ'"))throw new Error('V10 interactive demos missing');
-if(!html.includes('radarTodayRouteV103')||!html.includes('8 paradas · 09:00')||!html.includes("'11055226','11682280','10821806'"))throw new Error('V10.3 today visit route missing');
+if(!html.includes('radarTodayRouteV104')||!html.includes('Wego Coffee & Beer → Café Café Bistro')||!html.includes("'8788752','11739719'"))throw new Error('V10.4 café-only field follow-up route missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
 console.log('Radar Local V9.9 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
