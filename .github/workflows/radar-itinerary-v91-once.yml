@@ -1,4 +1,5 @@
 name: Radar itinerary V9.1 once
+# trigger registered workflow
 on:
   push:
     branches: [radar-local-host]
