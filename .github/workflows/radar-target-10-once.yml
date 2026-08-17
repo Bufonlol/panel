@@ -29,7 +29,6 @@ jobs:
           text = path.read_text(encoding='utf-8')
           original = text
 
-          # Monday/Cafeterías: target 6 -> 10, scoped to the first V8 day object.
           text, count = re.subn(
               r"(\{dow:'Lunes',name:'Cafeterías'.*?,target:)6(\},)",
               r"\g<1>10\2",
@@ -39,26 +38,22 @@ jobs:
           if count == 0 and "name:'Cafeterías'" in text and "target:10" not in text:
               raise SystemExit('Could not locate Monday cafeteria target')
 
-          # Weekly detail must display all 10 prepared prospects.
           if 'top=list.slice(0,8)' in text:
               text = text.replace('top=list.slice(0,8)', 'top=list.slice(0,10)', 1)
           elif 'top=list.slice(0,10)' not in text:
               raise SystemExit('Could not locate weekly prospect display limit')
 
-          # V8 route preparation must be able to select 10 stops.
           if 'Math.min(8,list.length)' in text:
               text = text.replace('Math.min(8,list.length)', 'Math.min(10,list.length)', 1)
           elif 'Math.min(10,list.length)' not in text:
               raise SystemExit('Could not locate V8 route stop clamp')
 
-          # Add 9 and 10 as route planner options, scoped to #routeStops.
           route_pattern = re.compile(r'(<select id="routeStops"[^>]*>.*?<option>8</option>)(</select>)', re.S)
           if '<option>9</option><option>10</option>' not in text:
               text, count = route_pattern.subn(r'\1<option>9</option><option>10</option>\2', text, count=1)
               if count != 1:
                   raise SystemExit('Could not extend routeStops options')
 
-          # Keep the legacy route helper consistent even though V8 overrides it later.
           legacy_old = '.sort((a,z)=>z.p.priority-a.p.priority).slice(0,8);if(rows.length<2)'
           legacy_new = '.sort((a,z)=>z.p.priority-a.p.priority).slice(0,10);if(rows.length<2)'
           if legacy_old in text:
@@ -75,7 +70,8 @@ jobs:
           rm -f .github/workflows/radar-target-10-once.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add dist/index.html .github/workflows/radar-target-10-once.yml
+          git add -f dist/index.html
+          git add -u .github/workflows/radar-target-10-once.yml
           if git diff --cached --quiet; then
             echo "No changes to publish"
             exit 0
