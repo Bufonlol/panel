@@ -105,4 +105,4 @@ if(!html.includes('radarDemoEdgeFastpathV96'))throw new Error('V9.6 demo fastpat
 if(!html.includes('radarOperationalSafetyV98')||!html.includes('Weekly Prospecting OS V9.8')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V9.8 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V9.8.1 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
