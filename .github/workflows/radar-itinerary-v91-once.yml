@@ -1,0 +1,51 @@
+name: Radar itinerary V9.1 once
+on:
+  push:
+    branches: [radar-local-host]
+    paths:
+      - 'visit-itinerary-patch-v9_1.js'
+      - '.github/workflows/radar-itinerary-v91-once.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire, validate and publish V9.1
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-radar-v3.cjs')
+          s=p.read_text()
+          load="vm.runInThisContext(fs.readFileSync('visit-itinerary-patch-v9_1.js','utf8'),{filename:'visit-itinerary-patch-v9_1.js'});"
+          if load not in s:
+              anchor="vm.runInThisContext(fs.readFileSync('visit-hours-patch-v9_0.js','utf8'),{filename:'visit-hours-patch-v9_0.js'});"
+              s=s.replace(anchor,anchor+'\n'+load)
+          apply="html=window.patchRadarVisitItineraryV91(html);"
+          if apply not in s:
+              anchor="html=window.patchRadarVisitHoursV90(html);"
+              s=s.replace(anchor,anchor+'\n'+apply)
+          old="if(!html.includes('radarVisitHoursV90')||!html.includes('v90-hours')||!html.includes('Weekly Prospecting OS V9.0'))throw new Error('V9.0 business hours missing');"
+          new="if(!html.includes('radarVisitHoursV90')||!html.includes('v90-hours'))throw new Error('V9.0 business hours missing');"
+          s=s.replace(old,new)
+          check="if(!html.includes('radarVisitItineraryV91')||!html.includes('v91-agenda')||!html.includes('Weekly Prospecting OS V9.1')||!html.includes('Armar horario'))throw new Error('V9.1 sequential itinerary missing');"
+          if check not in s:
+              s=s.replace(new,new+'\n'+check)
+          s=s.replace("console.log('Radar Local V9.0 built:'","console.log('Radar Local V9.1 built:'")
+          p.write_text(s)
+          PY
+          node build-radar-v3.cjs
+          grep -q 'Radar Local — Weekly Prospecting OS V9.1' dist/index.html
+          grep -q 'radarVisitItineraryV91' dist/index.html
+          grep -q 'Armar horario' dist/index.html
+          grep -q 'AGENDA DE ESTA PARADA' dist/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
+          git commit -m 'feat: publish sequential visit itinerary V9.1'
+          git push origin radar-local-host
