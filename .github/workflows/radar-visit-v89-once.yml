@@ -1,0 +1,40 @@
+name: Radar visit mobile detail V8.9 once
+
+on:
+  push:
+    branches:
+      - radar-local-host
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+
+      - name: Wire, validate and publish V8.9
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const p='build-radar-v3.cjs';
+          let s=fs.readFileSync(p,'utf8');
+          const load="vm.runInThisContext(fs.readFileSync('visit-mobile-detail-patch-v8_9.js','utf8'),{filename:'visit-mobile-detail-patch-v8_9.js'});";
+          if(!s.includes(load)) s=s.replace("vm.runInThisContext(fs.readFileSync('visit-mode-patch-v8_8.js','utf8'),{filename:'visit-mode-patch-v8_8.js'});", "vm.runInThisContext(fs.readFileSync('visit-mode-patch-v8_8.js','utf8'),{filename:'visit-mode-patch-v8_8.js'});\n"+load);
+          if(!s.includes('html=window.patchRadarVisitMobileV89(html);')) s=s.replace('html=window.patchRadarVisitModeV88(html);','html=window.patchRadarVisitModeV88(html);\nhtml=window.patchRadarVisitMobileV89(html);');
+          const test="if(!html.includes('radarVisitMobileV89')||!html.includes('v89-detail')||!html.includes('Weekly Prospecting OS V8.9'))throw new Error('V8.9 mobile visit detail missing');";
+          if(!s.includes('V8.9 mobile visit detail missing')) s=s.replace("if(!html.includes('radarVisitModeV88')||!html.includes('MODO VISITAS · V8.8')||!html.includes('data-v88-demo')||!html.includes('Weekly Prospecting OS V8.8'))throw new Error('V8.8 visit mode missing');", "if(!html.includes('radarVisitModeV88')||!html.includes('MODO VISITAS · V8.8')||!html.includes('data-v88-demo'))throw new Error('V8.8 visit mode missing');\n"+test);
+          s=s.replace(/Radar Local V8\.8 built:/g,'Radar Local V8.9 built:');
+          fs.writeFileSync(p,s);
+          NODE
+          node build-radar-v3.cjs
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
+          git commit -m 'feat: publish Radar visit mobile detail V8.9' || exit 0
+          git push origin radar-local-host
