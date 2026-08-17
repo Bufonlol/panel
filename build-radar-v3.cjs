@@ -41,6 +41,7 @@ vm.runInThisContext(fs.readFileSync('demo-experience-patch-v10.js','utf8'),{file
 vm.runInThisContext(fs.readFileSync('visit-today-route-patch-v10_4.js','utf8'),{filename:'visit-today-route-patch-v10_4.js'});
 vm.runInThisContext(fs.readFileSync('visit-today-results-patch-v10_5.js','utf8'),{filename:'visit-today-results-patch-v10_5.js'});
 vm.runInThisContext(fs.readFileSync('visit-tomorrow-route-patch-v10_6.js','utf8'),{filename:'visit-tomorrow-route-patch-v10_6.js'});
+vm.runInThisContext(fs.readFileSync('visit-tuesday-dental-patch-v10_7.js','utf8'),{filename:'visit-tuesday-dental-patch-v10_7.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -89,6 +90,7 @@ html=window.patchRadarDemoExperienceV10(html);
 html=window.patchRadarVisitTodayRouteV104(html);
 html=window.patchRadarVisitTodayResultsV105(html);
 html=window.patchRadarVisitTomorrowRouteV106(html);
+html=window.patchRadarVisitTuesdayDentalV107(html);
 let checked=1;if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
 if(!html.includes('Fit para prospectar')||!html.includes('prospectingProfile')||!html.includes('routeProspectingFit'))throw new Error('V7.2 prospecting fit missing');
@@ -118,6 +120,7 @@ if(!html.includes('radarDemoExperienceV10')||!html.includes('DEMO INTERACTIVA')|
 if(!html.includes('radarTodayRouteV104')||!html.includes('Wego Coffee & Beer → Café Café Bistro')||!html.includes("'8788752','11739719'"))throw new Error('V10.4 café-only field follow-up route missing');
 if(!html.includes('radarTodayResultsV105')||!html.includes('3 tarjetas entregadas')||!html.includes('Descartado · compañía grande')||!html.includes('No entré; me dio pena.'))throw new Error('V10.5 field results missing');
 if(!html.includes('radarTomorrowRouteV106')||!html.includes('2026-08-18')||!html.includes('8 cafeterías locales')||!html.includes("'4408429','10771471','9785081','11281677','7199299','7197654','10821806','11610538'")||!html.includes("'7199299':{name:'MARÍA BONITA'")||!html.includes("'9785081':{name:'LA CEREZA DE CAFÉ'")||!html.includes("'11610538':{name:'CAFÉ DON GERARDO'"))throw new Error('V10.6 tomorrow café route or demos missing');
+if(!html.includes('radarTuesdayDentalV107')||!html.includes('5 dentales + 8 cafeterías')||!html.includes("'4294961','4293514','8259500','10198658','7197871'")||!html.includes("'4294961':{name:'ORTHODENT',type:'dental'")||!html.includes('data-dental-action="confirm"')||!html.includes('Abrir demo dental completa'))throw new Error('V10.7 Tuesday dental route or demos missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
 console.log('Radar Local V9.9 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);

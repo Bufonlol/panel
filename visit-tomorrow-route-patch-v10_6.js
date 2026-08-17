@@ -105,6 +105,7 @@ function addPrep(page,shell,today){
  shell.parentElement.insertBefore(script,shell);shell.parentElement.insertBefore(order,script);shell.parentElement.insertBefore(banner,order);
 }
 function decorate(){
+ if(window.__RADAR_TUESDAY_DENTAL_V107__)return;
  const today=localDate();if(today!==PREP_DATE&&today!==ROUTE_DATE)return;
  attachPlaybooks();
  const page=document.querySelector('#visitsView .visit-page'),shell=page&&page.querySelector('.visit-shell');addPrep(page,shell,today);
