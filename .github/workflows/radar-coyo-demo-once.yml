@@ -1,0 +1,36 @@
+name: Radar COYO demos once
+on:
+  push:
+    branches: [radar-local-host]
+    paths:
+      - 'coyo-demo-patch-v8_6.js'
+      - '.github/workflows/radar-coyo-demo-once.yml'
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire COYO demos and build
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const p='build-radar-v3.cjs';
+          let s=fs.readFileSync(p,'utf8');
+          const load="vm.runInThisContext(fs.readFileSync('coyo-demo-patch-v8_6.js','utf8'),{filename:'coyo-demo-patch-v8_6.js'});";
+          if(!s.includes(load)) s=s.replace("vm.runInThisContext(fs.readFileSync('competition-research-seed-patch-v8_5_1.js','utf8'),{filename:'competition-research-seed-patch-v8_5_1.js'});", "vm.runInThisContext(fs.readFileSync('competition-research-seed-patch-v8_5_1.js','utf8'),{filename:'competition-research-seed-patch-v8_5_1.js'});\n"+load);
+          if(!s.includes('html=window.patchRadarCoyoDemosV86(html);')) s=s.replace('html=window.patchRadarCompetitionResearchV851(html);','html=window.patchRadarCompetitionResearchV851(html);\nhtml=window.patchRadarCoyoDemosV86(html);');
+          const test="if(!html.includes('radarCoyoDemosV86')||!html.includes('Demo COYO')||!html.includes('coyoDemoModal'))throw new Error('V8.6 COYO prospect demos missing');";
+          if(!s.includes("V8.6 COYO prospect demos missing")) s=s.replace("if(!html.includes('radarCompetitionResearchV851')||!html.includes('research-echodas')||!html.includes('research-ccreativa'))throw new Error('V8.5.1 researched competition seed missing');", "if(!html.includes('radarCompetitionResearchV851')||!html.includes('research-echodas')||!html.includes('research-ccreativa'))throw new Error('V8.5.1 researched competition seed missing');\n"+test);
+          s=s.replace(/Radar Local V8\.5\.1 built:/g,'Radar Local V8.6 built:');
+          fs.writeFileSync(p,s);
+          NODE
+          node build-radar-v3.cjs
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build-radar-v3.cjs dist/index.html
+          git commit -m "feat: publish COYO cafe demos" || exit 0
+          git push
