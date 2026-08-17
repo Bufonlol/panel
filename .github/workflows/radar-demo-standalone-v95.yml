@@ -1,0 +1,50 @@
+name: Radar demo standalone V9.5
+on:
+  push:
+    branches: [radar-local-host]
+    paths:
+      - 'demo-standalone-v9_5.js'
+      - '.github/workflows/radar-demo-standalone-v95.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire, validate and publish V9.5
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-radar-v3.cjs')
+          s=p.read_text()
+          load="vm.runInThisContext(fs.readFileSync('demo-standalone-v9_5.js','utf8'),{filename:'demo-standalone-v9_5.js'});"
+          if load not in s:
+              anchor="vm.runInThisContext(fs.readFileSync('demo-present-clean-v9_4.js','utf8'),{filename:'demo-present-clean-v9_4.js'});"
+              s=s.replace(anchor,anchor+'\n'+load)
+          apply="html=window.patchRadarDemoStandaloneV95(html);"
+          if apply not in s:
+              anchor="html=window.patchRadarDemoPresentCleanV94(html);"
+              s=s.replace(anchor,anchor+'\n'+apply)
+          s=s.replace("if(!html.includes('radarDemoPresentCleanV94')||!html.includes('Weekly Prospecting OS V9.4')||!html.includes('coyo-direct-present'))throw new Error('V9.4 direct presentation missing');","if(!html.includes('radarDemoPresentCleanV94')||!html.includes('coyo-direct-present'))throw new Error('V9.4 direct presentation missing');")
+          check="if(!html.includes('radarDemoStandaloneV95')||!html.includes('Weekly Prospecting OS V9.5')||!html.includes('coyoStandaloneDemo'))throw new Error('V9.5 standalone demo missing');"
+          if check not in s:
+              anchor="if(!html.includes('radarDemoPresentCleanV94')||!html.includes('coyo-direct-present'))throw new Error('V9.4 direct presentation missing');"
+              s=s.replace(anchor,anchor+'\n'+check)
+          s=s.replace("console.log('Radar Local V9.4 built:'","console.log('Radar Local V9.5 built:'")
+          p.write_text(s)
+          PY
+          node build-radar-v3.cjs
+          grep -q 'Radar Local — Weekly Prospecting OS V9.5' dist/index.html
+          grep -q 'radarDemoStandaloneV95' dist/index.html
+          grep -q 'coyoStandaloneDemo' dist/index.html
+          grep -q 'CAFETERIA EL GALLO' dist/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
+          git commit -m 'fix: publish standalone COYO demos V9.5'
+          git push origin radar-local-host
