@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#f7f9fc" />
-<title>Radar Local — Weekly Prospecting OS V9.3</title>
+<title>Radar Local — Weekly Prospecting OS V9.4</title>
 <meta name="description" content="Radar geográfico de oportunidades comerciales con DENUE, verificación digital y CRM." />
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
@@ -212,6 +212,12 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 /* Radar Local V9.1 — sequential visit itinerary */
 .v91-start-wrap{display:flex;gap:6px;align-items:center}.v91-time{width:104px!important;min-width:104px!important}.v91-summary{display:flex;gap:7px;overflow-x:auto;margin:0 0 9px;scrollbar-width:none}.v91-summary::-webkit-scrollbar{display:none}.v91-summary-pill{flex:0 0 auto;padding:7px 9px;border:1px solid #dfe6ef;border-radius:10px;background:#fff;font-size:8px;color:#617086}.v91-summary-pill b{color:#24354c}.v91-agenda{margin-top:8px;border:1px solid #cfe0f5;background:#f7fbff;border-radius:12px;padding:10px}.v91-agenda-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.v91-agenda-head span{font-size:7px;font-weight:900;letter-spacing:.08em;color:#1769e0}.v91-agenda-head b{font-size:9px;color:#2e4868}.v91-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px}.v91-step{padding:7px;border:1px solid #dbe5f0;border-radius:9px;background:#fff}.v91-step span{display:block;font-size:6.5px;color:#7c8998;text-transform:uppercase;font-weight:850}.v91-step b{display:block;font-size:10px;margin-top:2px}.v91-note{font-size:7px;color:#768497;margin-top:7px;line-height:1.45}.v91-qtime{display:block!important;margin-top:3px!important;font-size:7px!important;color:#245d9e!important;font-weight:900!important}.v91-qsub{display:block!important;margin-top:1px!important;font-size:6.3px!important;color:#7b8796!important}.v91-stop-current{box-shadow:0 0 0 2px rgba(23,105,224,.10)!important}.v91-late{color:#a25f13!important}.v91-bad{color:#b84444!important}.v91-plan-btn{white-space:nowrap}
 @media(max-width:700px){.visit-head-actions{grid-template-columns:1fr 1fr 1fr!important}.visit-head-actions #visitDaySelect{grid-column:1/-1!important}.v91-start-wrap{grid-column:1/-1!important;display:grid;grid-template-columns:auto 1fr}.v91-time{width:100%!important;min-width:0!important}.v91-summary{margin:-1px 0 7px}.v91-steps{grid-template-columns:1fr 1fr}.v91-agenda{padding:9px}.visit-stop{flex-basis:162px!important}}
+
+/* Radar Local V9.4 — direct presentation + clean demo iconography */
+.coyo-direct-present .app{visibility:hidden!important}
+.coyo-direct-present #coyoDemoModal{visibility:visible!important}
+.coyo-demo-card em{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;font-weight:900!important;font-size:8px!important;letter-spacing:.05em!important;color:#2f5d45!important;background:#f2e9dc!important}
+.coyo-demo-cta{gap:6px}.coyo-demo-cta .v94-arrow{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-weight:900}
 </style>
 </head>
 <body>
@@ -1212,6 +1218,45 @@ async function hardOpen(id){if(busy)return;busy=true;try{const b=await ensure(id
 }catch(e){if(typeof toast==='function')toast(e instanceof Error?e.message:'No se pudo abrir la demo')}finally{busy=false}}
 document.addEventListener('click',function(e){const id=targetId(e.target);if(!id)return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();hardOpen(id)},true);
 window.radarDemoOpenHardfixV93={version:'9.3',open:hardOpen,ensure:ensure};
+})();
+</script><script>
+(function(){
+let opening=false,openedDirect=false;
+function cleanIcons(root){
+ const box=root||document.getElementById('coyoDemoBody');if(!box)return;
+ box.querySelectorAll('.coyo-demo-card em').forEach(function(n,i){n.textContent=String(i+1).padStart(2,'0')});
+ box.querySelectorAll('.coyo-demo-cta').forEach(function(n){
+   n.innerHTML=n.textContent.replace(/[→↗★☕◇▤◉♧☺⌖▣◷]/g,'').trim()+' <span class="v94-arrow">-&gt;</span>';
+ });
+}
+async function openFromUrl(){
+ if(opening||openedDirect)return;
+ const u=new URL(location.href),id=u.searchParams.get('demo');if(!id)return;
+ const present=u.searchParams.get('present')==='1';
+ opening=true;
+ try{
+   let b=null;
+   if(window.radarDemoOpenHardfixV93?.ensure)b=await window.radarDemoOpenHardfixV93.ensure(id);
+   else if(window.radarDemoAutoloadV92?.load){await window.radarDemoAutoloadV92.load(id);b=true}
+   if(!b)throw new Error('No se pudo preparar la demo');
+   const api=window.radarCoyoDemosV86;if(!api?.open)throw new Error('Demo COYO no disponible');
+   if(present)document.documentElement.classList.add('coyo-direct-present');
+   await api.open(String(id),present);
+   openedDirect=true;
+   setTimeout(function(){cleanIcons()},30);
+ }catch(e){
+   document.documentElement.classList.remove('coyo-direct-present');
+   if(typeof toast==='function')toast(e instanceof Error?e.message:'No se pudo abrir la demo');
+ }finally{opening=false}
+}
+const body=document.getElementById('coyoDemoBody');if(body)new MutationObserver(function(){cleanIcons(body)}).observe(body,{childList:true,subtree:true});
+document.addEventListener('click',function(e){
+ const close=e.target.closest?.('[data-coyo-close]');if(close)document.documentElement.classList.remove('coyo-direct-present');
+ const demo=e.target.closest?.('[data-v89-open-demo],[data-coyo-demo-id],[data-v88-demo]');if(demo)setTimeout(function(){cleanIcons()},80);
+},true);
+setTimeout(openFromUrl,250);setTimeout(openFromUrl,800);setTimeout(openFromUrl,1600);
+window.addEventListener('load',function(){setTimeout(openFromUrl,150)});
+window.radarDemoPresentCleanV94={version:'9.4',openFromUrl:openFromUrl,clean:cleanIcons};
 })();
 </script></body>
 </html>

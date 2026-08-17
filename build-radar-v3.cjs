@@ -32,6 +32,7 @@ vm.runInThisContext(fs.readFileSync('visit-hours-patch-v9_0.js','utf8'),{filenam
 vm.runInThisContext(fs.readFileSync('visit-itinerary-patch-v9_1.js','utf8'),{filename:'visit-itinerary-patch-v9_1.js'});
 vm.runInThisContext(fs.readFileSync('demo-autoload-hotfix-v9_2.js','utf8'),{filename:'demo-autoload-hotfix-v9_2.js'});
 vm.runInThisContext(fs.readFileSync('demo-open-hardfix-v9_3.js','utf8'),{filename:'demo-open-hardfix-v9_3.js'});
+vm.runInThisContext(fs.readFileSync('demo-present-clean-v9_4.js','utf8'),{filename:'demo-present-clean-v9_4.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -71,6 +72,7 @@ html=window.patchRadarVisitHoursV90(html);
 html=window.patchRadarVisitItineraryV91(html);
 html=window.patchRadarDemoAutoloadV92(html);
 html=window.patchRadarDemoOpenHardfixV93(html);
+html=window.patchRadarDemoPresentCleanV94(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
@@ -91,7 +93,8 @@ if(!html.includes('radarVisitMobileV89')||!html.includes('v89-detail'))throw new
 if(!html.includes('radarVisitHoursV90')||!html.includes('v90-hours'))throw new Error('V9.0 business hours missing');
 if(!html.includes('radarVisitItineraryV91')||!html.includes('v91-agenda')||!html.includes('Armar horario'))throw new Error('V9.1 sequential itinerary missing');
 if(!html.includes('radarDemoAutoloadV92')||!html.includes('Cargando demo'))throw new Error('V9.2 demo autoload missing');
-if(!html.includes('radarDemoOpenHardfixV93')||!html.includes('Weekly Prospecting OS V9.3')||!html.includes('stopImmediatePropagation'))throw new Error('V9.3 demo hardfix missing');
+if(!html.includes('radarDemoOpenHardfixV93')||!html.includes('stopImmediatePropagation'))throw new Error('V9.3 demo hardfix missing');
+if(!html.includes('radarDemoPresentCleanV94')||!html.includes('Weekly Prospecting OS V9.4')||!html.includes('coyo-direct-present'))throw new Error('V9.4 direct presentation missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V9.3 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V9.4 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
