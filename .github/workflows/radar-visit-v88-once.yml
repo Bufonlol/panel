@@ -1,0 +1,46 @@
+name: Radar visit mode V8.8 once
+
+on:
+  push:
+    branches:
+      - radar-local-host
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire, validate and publish V8.8
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const p='build-radar-v3.cjs';
+          let s=fs.readFileSync(p,'utf8');
+          const load="vm.runInThisContext(fs.readFileSync('visit-mode-patch-v8_8.js','utf8'),{filename:'visit-mode-patch-v8_8.js'});";
+          if(!s.includes(load)) s=s.replace("vm.runInThisContext(fs.readFileSync('mobile-field-ux-patch-v8_7_1.js','utf8'),{filename:'mobile-field-ux-patch-v8_7_1.js'});", "vm.runInThisContext(fs.readFileSync('mobile-field-ux-patch-v8_7_1.js','utf8'),{filename:'mobile-field-ux-patch-v8_7_1.js'});\n"+load);
+          if(!s.includes('html=window.patchRadarVisitModeV88(html);')) s=s.replace('html=window.patchRadarMobileFieldV871(html);','html=window.patchRadarMobileFieldV871(html);\nhtml=window.patchRadarVisitModeV88(html);');
+          const old="if(!html.includes('radarMobileFieldV871')||!html.includes('v871-more-grid')||!html.includes('Weekly Prospecting OS V8.7'))throw new Error('V8.7 mobile field UX missing');";
+          const newer="if(!html.includes('radarMobileFieldV871')||!html.includes('v871-more-grid'))throw new Error('V8.7 mobile field UX missing');\nif(!html.includes('radarVisitModeV88')||!html.includes('MODO VISITAS · V8.8')||!html.includes('data-v88-demo')||!html.includes('Weekly Prospecting OS V8.8'))throw new Error('V8.8 visit mode missing');";
+          if(s.includes(old)) s=s.replace(old,newer); else if(!s.includes('V8.8 visit mode missing')) s=s.replace("if(!html.includes('radarCoyoDemosV86')||!html.includes('Demo COYO')||!html.includes('coyoDemoModal'))throw new Error('V8.6 COYO prospect demos missing');", "if(!html.includes('radarCoyoDemosV86')||!html.includes('Demo COYO')||!html.includes('coyoDemoModal'))throw new Error('V8.6 COYO prospect demos missing');\n"+newer);
+          s=s.replace(/Radar Local V8\.7 built:/g,'Radar Local V8.8 built:');
+          fs.writeFileSync(p,s);
+          NODE
+          node build-radar-v3.cjs
+          grep -q 'radarVisitModeV88' dist/index.html
+          grep -q 'MODO VISITAS · V8.8' dist/index.html
+          grep -q 'Demo COYO' dist/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs visit-mode-patch-v8_8.js
+          git add -f dist/index.html
+          git rm .github/workflows/radar-visit-v88-once.yml
+          git commit -m 'feat: publish Radar visit mode V8.8'
+          git pull --rebase origin radar-local-host
+          git push origin radar-local-host
