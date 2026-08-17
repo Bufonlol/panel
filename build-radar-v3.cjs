@@ -24,6 +24,7 @@ vm.runInThisContext(fs.readFileSync('manual-rental-clients-patch-v8_3.js','utf8'
 vm.runInThisContext(fs.readFileSync('deep-research-playbook-patch-v8_4.js','utf8'),{filename:'deep-research-playbook-patch-v8_4.js'});
 vm.runInThisContext(fs.readFileSync('competition-analysis-patch-v8_5.js','utf8'),{filename:'competition-analysis-patch-v8_5.js'});
 vm.runInThisContext(fs.readFileSync('competition-research-seed-patch-v8_5_1.js','utf8'),{filename:'competition-research-seed-patch-v8_5_1.js'});
+vm.runInThisContext(fs.readFileSync('coyo-demo-patch-v8_6.js','utf8'),{filename:'coyo-demo-patch-v8_6.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -55,6 +56,7 @@ html=window.patchRadarManualRentalsV83(html);
 html=window.patchRadarDeepPlaybooksV84(html);
 html=window.patchRadarCompetitionV85(html);
 html=window.patchRadarCompetitionResearchV851(html);
+html=window.patchRadarCoyoDemosV86(html);
 let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
 if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
@@ -68,6 +70,7 @@ if(!html.includes('radarManualRentalsV83')||!html.includes('+ Cliente manual'))t
 if(!html.includes('v84OpenBusinessPlaybook')||!html.includes('radarDeepPlaybooksV84'))throw new Error('V8.4 deep researched playbooks missing');
 if(!html.includes('competitionView')||!html.includes('radarCompetitionV85')||!html.includes('Competencia'))throw new Error('V8.5 competition analysis missing');
 if(!html.includes('radarCompetitionResearchV851')||!html.includes('research-echodas')||!html.includes('research-ccreativa'))throw new Error('V8.5.1 researched competition seed missing');
+if(!html.includes('radarCoyoDemosV86')||!html.includes('Demo COYO')||!html.includes('coyoDemoModal'))throw new Error('V8.6 COYO prospect demos missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V8.5.1 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V8.6 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
