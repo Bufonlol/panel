@@ -1,0 +1,49 @@
+name: Radar demo edge fastpath V9.6
+on:
+  push:
+    branches: [radar-local-host]
+    paths:
+      - 'demo-edge-fastpath-v9_6.js'
+      - '.github/workflows/radar-demo-edge-fastpath-v96.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire, validate and publish V9.6
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-radar-v3.cjs')
+          s=p.read_text()
+          load="vm.runInThisContext(fs.readFileSync('demo-edge-fastpath-v9_6.js','utf8'),{filename:'demo-edge-fastpath-v9_6.js'});"
+          if load not in s:
+              anchor="vm.runInThisContext(fs.readFileSync('demo-standalone-v9_5.js','utf8'),{filename:'demo-standalone-v9_5.js'});"
+              s=s.replace(anchor,anchor+'\n'+load)
+          apply="html=window.patchRadarDemoEdgeFastpathV96(html);"
+          if apply not in s:
+              anchor="html=window.patchRadarDemoStandaloneV95(html);"
+              s=s.replace(anchor,anchor+'\n'+apply)
+          s=s.replace("if(!html.includes('radarDemoStandaloneV95')||!html.includes('Weekly Prospecting OS V9.5')||!html.includes('coyoStandaloneDemo'))throw new Error('V9.5 standalone demo missing');","if(!html.includes('radarDemoStandaloneV95')||!html.includes('coyoStandaloneDemo'))throw new Error('V9.5 standalone demo missing');")
+          check="if(!html.includes('radarDemoEdgeFastpathV96')||!html.includes('Weekly Prospecting OS V9.6')||!html.includes('functions/v1/coyo-demo'))throw new Error('V9.6 edge demo fastpath missing');"
+          if check not in s:
+              anchor="if(!html.includes('radarDemoStandaloneV95')||!html.includes('coyoStandaloneDemo'))throw new Error('V9.5 standalone demo missing');"
+              s=s.replace(anchor,anchor+'\n'+check)
+          s=s.replace("console.log('Radar Local V9.5 built:'","console.log('Radar Local V9.6 built:'")
+          p.write_text(s)
+          PY
+          node build-radar-v3.cjs
+          grep -q 'Radar Local — Weekly Prospecting OS V9.6' dist/index.html
+          grep -q 'radarDemoEdgeFastpathV96' dist/index.html
+          grep -q 'functions/v1/coyo-demo' dist/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
+          git commit -m 'fix: publish COYO demo edge fastpath V9.6'
+          git push origin radar-local-host
