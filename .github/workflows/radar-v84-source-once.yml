@@ -21,7 +21,7 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import re
+          import re, subprocess
 
           weekly=Path('weekly-prospecting-os-v8.js')
           s=weekly.read_text(encoding='utf-8')
@@ -31,33 +31,35 @@ jobs:
           s=s.replace('Math.min(8,list.length)','Math.min(10,list.length)',1)
           weekly.write_text(s,encoding='utf-8')
 
-          idx=Path('index.html')
-          s=idx.read_text(encoding='utf-8')
-          if '<option>9</option><option>10</option>' not in s:
-            pat=re.compile(r'(<select id="routeStops"[^>]*>.*?<option>8</option>)(</select>)',re.S)
-            s,n=pat.subn(r'\1<option>9</option><option>10</option>\2',s,count=1)
-            if n!=1: raise SystemExit('routeStops select not found')
-          idx.write_text(s,encoding='utf-8')
+          routes=Path('route-planner-patch-v6_2.js')
+          s=routes.read_text(encoding='utf-8')
+          old='<option>7</option><option>8</option></select>'
+          new='<option>7</option><option>8</option><option>9</option><option>10</option></select>'
+          if new not in s:
+            if old not in s: raise SystemExit('routeStops options not found')
+            s=s.replace(old,new,1)
+          routes.write_text(s,encoding='utf-8')
 
           build=Path('build-radar-v3.cjs')
           s=build.read_text(encoding='utf-8')
           load="vm.runInThisContext(fs.readFileSync('deep-research-playbook-patch-v8_4.js','utf8'),{filename:'deep-research-playbook-patch-v8_4.js'});"
           if load not in s:
             anchor="vm.runInThisContext(fs.readFileSync('manual-rental-clients-patch-v8_3.js','utf8'),{filename:'manual-rental-clients-patch-v8_3.js'});"
+            if anchor not in s: raise SystemExit('V8.3 load anchor not found')
             s=s.replace(anchor,anchor+'\n'+load,1)
           apply="html=window.patchRadarDeepPlaybooksV84(html);"
           if apply not in s:
             anchor='html=window.patchRadarManualRentalsV83(html);'
+            if anchor not in s: raise SystemExit('V8.3 apply anchor not found')
             s=s.replace(anchor,anchor+'\n'+apply,1)
           validation="if(!html.includes('v84OpenBusinessPlaybook')||!html.includes('radarDeepPlaybooksV84'))throw new Error('V8.4 deep researched playbooks missing');"
           if validation not in s:
             anchor="if(!html.includes('radarManualRentalsV83')||!html.includes('+ Cliente manual'))throw new Error('V8.3 manual rental clients missing');"
+            if anchor not in s: raise SystemExit('V8.3 validation anchor not found')
             s=s.replace(anchor,anchor+'\n'+validation,1)
           s=s.replace("console.log('Radar Local V8.3 built:'","console.log('Radar Local V8.4 built:'")
           build.write_text(s,encoding='utf-8')
 
-          # Build locally as a guard. The regular build workflow will publish dist from the source commit.
-          import subprocess
           subprocess.run(['node','build-radar-v3.cjs'],check=True)
           out=Path('dist/index.html').read_text(encoding='utf-8')
           checks=['target:10','top=list.slice(0,10)','Math.min(10,list.length)','v84OpenBusinessPlaybook','radarDeepPlaybooksV84','<option>9</option><option>10</option>']
@@ -70,7 +72,7 @@ jobs:
           rm -f .github/workflows/radar-v84-source-once.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add weekly-prospecting-os-v8.js index.html build-radar-v3.cjs deep-research-playbook-patch-v8_4.js .github/workflows/radar-v84-source-once.yml
+          git add weekly-prospecting-os-v8.js route-planner-patch-v6_2.js build-radar-v3.cjs deep-research-playbook-patch-v8_4.js .github/workflows/radar-v84-source-once.yml
           git commit -m 'feat: persist Radar V8.4 researched proposals and 10-stop routes'
           git pull --rebase origin radar-local-host
           git push origin HEAD:radar-local-host
