@@ -1,0 +1,49 @@
+name: Radar demo hardfix V9.3
+on:
+  push:
+    branches: [radar-local-host]
+    paths:
+      - 'demo-open-hardfix-v9_3.js'
+      - '.github/workflows/radar-demo-hardfix-v93.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire, validate and publish V9.3
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-radar-v3.cjs')
+          s=p.read_text()
+          load="vm.runInThisContext(fs.readFileSync('demo-open-hardfix-v9_3.js','utf8'),{filename:'demo-open-hardfix-v9_3.js'});"
+          if load not in s:
+              anchor="vm.runInThisContext(fs.readFileSync('demo-autoload-hotfix-v9_2.js','utf8'),{filename:'demo-autoload-hotfix-v9_2.js'});"
+              s=s.replace(anchor,anchor+'\n'+load)
+          apply="html=window.patchRadarDemoOpenHardfixV93(html);"
+          if apply not in s:
+              anchor="html=window.patchRadarDemoAutoloadV92(html);"
+              s=s.replace(anchor,anchor+'\n'+apply)
+          s=s.replace("if(!html.includes('radarDemoAutoloadV92')||!html.includes('Weekly Prospecting OS V9.2')||!html.includes('Cargando demo'))throw new Error('V9.2 demo autoload missing');","if(!html.includes('radarDemoAutoloadV92')||!html.includes('Cargando demo'))throw new Error('V9.2 demo autoload missing');")
+          check="if(!html.includes('radarDemoOpenHardfixV93')||!html.includes('Weekly Prospecting OS V9.3')||!html.includes('stopImmediatePropagation'))throw new Error('V9.3 demo hardfix missing');"
+          if check not in s:
+              anchor="if(!html.includes('radarDemoAutoloadV92')||!html.includes('Cargando demo'))throw new Error('V9.2 demo autoload missing');"
+              s=s.replace(anchor,anchor+'\n'+check)
+          s=s.replace("console.log('Radar Local V9.2 built:'","console.log('Radar Local V9.3 built:'")
+          p.write_text(s)
+          PY
+          node build-radar-v3.cjs
+          grep -q 'Radar Local — Weekly Prospecting OS V9.3' dist/index.html
+          grep -q 'radarDemoOpenHardfixV93' dist/index.html
+          grep -q 'stopImmediatePropagation' dist/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
+          git commit -m 'fix: publish COYO demo hardfix V9.3'
+          git push origin radar-local-host
