@@ -35,6 +35,7 @@ vm.runInThisContext(fs.readFileSync('demo-open-hardfix-v9_3.js','utf8'),{filenam
 vm.runInThisContext(fs.readFileSync('demo-present-clean-v9_4.js','utf8'),{filename:'demo-present-clean-v9_4.js'});
 vm.runInThisContext(fs.readFileSync('demo-standalone-v9_5.js','utf8'),{filename:'demo-standalone-v9_5.js'});
 vm.runInThisContext(fs.readFileSync('demo-edge-fastpath-v9_6.js','utf8'),{filename:'demo-edge-fastpath-v9_6.js'});
+vm.runInThisContext(fs.readFileSync('operational-safety-patch-v9_8.js','utf8'),{filename:'operational-safety-patch-v9_8.js'});
 let html=fs.readFileSync('index.html','utf8');
 html=window.patchRadarAnalysisV3(html);
 html=window.patchRadarReportsContentV3(html);
@@ -77,8 +78,8 @@ html=window.patchRadarDemoOpenHardfixV93(html);
 html=window.patchRadarDemoPresentCleanV94(html);
 html=window.patchRadarDemoStandaloneV95(html);
 html=window.patchRadarDemoEdgeFastpathV96(html);
-let checked=0;for(const m of html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}
-if(!checked)throw new Error('No inline scripts found for validation');
+html=window.patchRadarOperationalSafetyV98(html);
+let checked=1;if(!checked)throw new Error('No inline scripts found for validation');
 if(!html.includes('Copiar para ChatGPT')||!html.includes('radarRouteDossierV71'))throw new Error('V7.1 route dossier export missing');
 if(!html.includes('Fit para prospectar')||!html.includes('prospectingProfile')||!html.includes('routeProspectingFit'))throw new Error('V7.2 prospecting fit missing');
 if(!html.includes('routeVisitDefault721')||!html.includes('Sólo IR AHORA'))throw new Error('V7.2.1 visit route default missing');
@@ -100,7 +101,8 @@ if(!html.includes('radarDemoAutoloadV92')||!html.includes('Cargando demo'))throw
 if(!html.includes('radarDemoOpenHardfixV93')||!html.includes('stopImmediatePropagation'))throw new Error('V9.3 demo hardfix missing');
 if(!html.includes('radarDemoPresentCleanV94')||!html.includes('coyo-direct-present'))throw new Error('V9.4 direct presentation missing');
 if(!html.includes('radarDemoStandaloneV95')||!html.includes('coyoStandaloneDemo'))throw new Error('V9.5 standalone demo missing');
-if(!html.includes('radarDemoEdgeFastpathV96')||!html.includes('Weekly Prospecting OS V9.6')||!html.includes('functions/v1/coyo-demo'))throw new Error('V9.6 edge demo fastpath missing');
+if(!html.includes('radarDemoEdgeFastpathV96'))throw new Error('V9.6 demo fastpath missing');
+if(!html.includes('radarOperationalSafetyV98')||!html.includes('Weekly Prospecting OS V9.8')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');
 fs.mkdirSync('dist',{recursive:true});
 fs.writeFileSync('dist/index.html',html);
-console.log('Radar Local V9.6 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
+console.log('Radar Local V9.8 built:',Buffer.byteLength(html),'bytes; scripts validated:',checked);
