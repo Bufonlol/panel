@@ -374,9 +374,9 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(max-width:760px){.csd-wrap{padding:12px 12px 34px}.csd-top{padding-bottom:12px}.csd-grid{grid-template-columns:1fr;gap:24px;padding-top:24px}.csd-copy h1{font-size:40px}.csd-copy p{font-size:12px}.csd-points{grid-template-columns:1fr 1fr}.csd-phone{width:100%;border-width:7px;border-radius:30px}.csd-hero{padding:19px}.csd-hero h2{font-size:25px}.csd-back{padding:8px 10px}.csd-foot{flex-direction:column}}
 </style>
 <style>
-/* Radar Local V10.1 — fixed field route for 17 Aug 2026 */
-.v101-route-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;padding:10px 12px;border:1px solid #cfe0f5;border-radius:12px;background:#f6faff;color:#36536f}.v101-route-banner div{min-width:0}.v101-route-banner span{display:block;font-size:7px;font-weight:900;letter-spacing:.08em;color:#1769e0}.v101-route-banner b{display:block;margin-top:2px;font-size:10px}.v101-route-banner em{flex:0 0 auto;border-radius:999px;background:#e9f8f1;color:#0d8554;padding:6px 8px;font-size:7px;font-style:normal;font-weight:900}
-@media(max-width:700px){.v101-route-banner{padding:9px 10px}.v101-route-banner b{font-size:9px}.v101-route-banner em{font-size:6.5px}}
+/* Radar Local V10.2 — fixed field route for 17 Aug 2026 */
+.v102-route-banner{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;padding:10px 12px;border:1px solid #cfe0f5;border-radius:12px;background:#f6faff;color:#36536f}.v102-route-banner div{min-width:0}.v102-route-banner span{display:block;font-size:7px;font-weight:900;letter-spacing:.08em;color:#1769e0}.v102-route-banner b{display:block;margin-top:2px;font-size:10px}.v102-route-banner em{flex:0 0 auto;border-radius:999px;background:#e9f8f1;color:#0d8554;padding:6px 8px;font-size:7px;font-style:normal;font-weight:900}
+@media(max-width:700px){.v102-route-banner{padding:9px 10px}.v102-route-banner b{font-size:9px}.v102-route-banner em{font-size:6.5px}}
 </style></head>
 <body>
 <div class="app">
@@ -1574,11 +1574,11 @@ window.radarVisitHoursSyncV99={version:'9.9',sync:function(){return syncHoursAnd
 </script><script>
 (function(){
 const ROUTE_DATE='2026-08-17';
-const IDS=['11053380','11055226','9845804','10821806','7197654','11281677','9534743','10771471','4408429','9318952'];
+const IDS=['11055226','9845804','10821806','7197654','11281677','9534743','10771471','4408429','9318952'];
 const BASKET_KEY='radar_route_basket_v2';
 const SESSION_KEY='radar_visit_session_v2_'+ROUTE_DATE;
 const START_KEY='radar_visit_start_time_v91';
-const MARKER_KEY='radar_visit_route_seed_2026_08_17_v101';
+const MARKER_KEY='radar_visit_route_seed_2026_08_17_v102';
 function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function read(key,fallback){try{return JSON.parse(localStorage.getItem(key)||'null')||fallback}catch{return fallback}}
 function sameIds(a,b){return Array.isArray(a)&&a.length===b.length&&a.every(function(x,i){return String(x)===String(b[i])})}
@@ -1598,15 +1598,15 @@ function seed(){
 function decorate(){
  if(localDate()!==ROUTE_DATE)return;
  const page=document.querySelector('#visitsView .visit-page'),shell=page&&page.querySelector('.visit-shell');
- if(!page||!shell||page.querySelector('.v101-route-banner'))return;
- const banner=document.createElement('div');banner.className='v101-route-banner';
- banner.innerHTML='<div><span>RUTA CARGADA · HOY</span><b>Vintage → La Abuelita → Fidelio → Ameyalli → Cafenatlan → Aroma → Breve → Mr Rocco → Vero → Fragolina</b></div><em>10 paradas · 09:00</em>';
+ if(!page||!shell||page.querySelector('.v102-route-banner'))return;
+ const banner=document.createElement('div');banner.className='v102-route-banner';
+ banner.innerHTML='<div><span>RUTA CARGADA · HOY</span><b>La Abuelita → Fidelio → Ameyalli → Cafenatlan → Aroma → Breve → Mr Rocco → Vero → Fragolina</b></div><em>9 paradas · 09:00</em>';
  shell.parentElement.insertBefore(banner,shell);
 }
 seed();
 setTimeout(decorate,350);setTimeout(decorate,1000);
 new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});
-window.radarTodayRouteV101={version:'10.1',date:ROUTE_DATE,ids:IDS.slice(),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
+window.radarTodayRouteV102={version:'10.2',date:ROUTE_DATE,ids:IDS.slice(),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script></body>
 </html>
