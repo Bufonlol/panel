@@ -29,10 +29,12 @@ jobs:
           if apply not in s:
               anchor="html=window.patchRadarOperationalSafetyV98(html);"
               s=s.replace(anchor,anchor+'\n'+apply)
+          oldv8="if(!html.includes('radarOperationalSafetyV98')||!html.includes('Weekly Prospecting OS V9.8')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');"
+          safev8="if(!html.includes('radarOperationalSafetyV98')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');"
+          s=s.replace(oldv8,safev8)
           check="if(!html.includes('radarVisitHoursSyncV99')||!html.includes('Weekly Prospecting OS V9.9'))throw new Error('V9.9 hours sync missing');"
           if check not in s:
-              anchor="if(!html.includes('radarOperationalSafetyV98')||!html.includes('Weekly Prospecting OS V9.8')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');"
-              s=s.replace(anchor,anchor+'\n'+check)
+              s=s.replace(safev8,safev8+'\n'+check)
           s=s.replace("console.log('Radar Local V9.8.1 built:'","console.log('Radar Local V9.9 built:'")
           p.write_text(s)
           PY
