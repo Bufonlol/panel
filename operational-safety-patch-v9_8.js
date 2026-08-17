@@ -16,6 +16,13 @@ function reason(b){
   if(CLOSED_GOOGLE.has(gb))return 'Google Maps / estado operativo indica que este establecimiento está cerrado. Radar lo excluye de visitas y rutas.';
   return 'El establecimiento no tiene estado operativo válido para una visita física. Radar lo excluye hasta verificar que siga abierto.';
 }
+function ensureStyle(){
+  if(document.getElementById('radar-operational-safety-style'))return;
+  const st=document.createElement('style');
+  st.id='radar-operational-safety-style';
+  st.textContent='.radar-closed-blocked{opacity:.5!important;filter:grayscale(.35)}';
+  (document.head||document.documentElement).appendChild(st);
+}
 function wrapProfile(){
   try{
     const base=window.prospectingProfile;
@@ -60,21 +67,20 @@ function sanitizeStorage(){
 }
 function markClosed(){
   const byId=new Map(list().map(function(b){return[idOf(b),b]}));
-  document.querySelectorAll('[data-lead-id],[data-v89-business],[data-visit-jump]').forEach(function(el){
-    const id=el.dataset.leadId||el.dataset.v89Business||el.dataset.visitJumpBusiness;if(!id)return;
+  document.querySelectorAll('[data-lead-id],[data-v89-business]').forEach(function(el){
+    const id=el.dataset.leadId||el.dataset.v89Business;if(!id)return;
     const b=byId.get(String(id));if(b&&closed(b)){el.classList.add('radar-closed-blocked');el.setAttribute('data-operational-blocked','1')}
   });
 }
-function run(){wrapProfile();sanitizeStorage();markClosed()}
+function run(){ensureStyle();wrapProfile();sanitizeStorage();markClosed()}
 run();setTimeout(run,120);setTimeout(run,500);setTimeout(run,1400);setInterval(run,5000);
-window.radarOperationalSafetyV98={version:'9.8',closed:closed,sanitize:sanitizeStorage,run:run};
+window.radarOperationalSafetyV98={version:'9.8.1',closed:closed,sanitize:sanitizeStorage,run:run};
 })();
 `;
-const CSS=String.raw`
-.radar-closed-blocked{opacity:.5!important;filter:grayscale(.35)}
-`;
-html=html.replace('</style>',CSS+'</style>');
-html=html.replace('</body>','<script>'+JS+'</script></body>');
-html=html.replace('Weekly Prospecting OS V9.6</title>','Weekly Prospecting OS V9.8</title>');
+const insert='<script>'+JS+'<\/script>';
+const pos=html.lastIndexOf('</body>');
+if(pos>=0)html=html.slice(0,pos)+insert+html.slice(pos);
+else html+=insert;
+html=html.replace(/Weekly Prospecting OS V(?:9\.5|9\.6|9\.7|9\.8)<\/title>/,'Weekly Prospecting OS V9.8</title>');
 return html;
 };
