@@ -1,0 +1,47 @@
+name: Radar hours sync V9.9
+on:
+  push:
+    branches: [radar-local-host]
+    paths:
+      - 'visit-hours-sync-patch-v9_9.js'
+      - '.github/workflows/radar-hours-sync-v99.yml'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: radar-local-host
+      - name: Wire and publish V9.9
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('build-radar-v3.cjs')
+          s=p.read_text()
+          load="vm.runInThisContext(fs.readFileSync('visit-hours-sync-patch-v9_9.js','utf8'),{filename:'visit-hours-sync-patch-v9_9.js'});"
+          if load not in s:
+              anchor="vm.runInThisContext(fs.readFileSync('operational-safety-patch-v9_8.js','utf8'),{filename:'operational-safety-patch-v9_8.js'});"
+              s=s.replace(anchor,anchor+'\n'+load)
+          apply="html=window.patchRadarVisitHoursSyncV99(html);"
+          if apply not in s:
+              anchor="html=window.patchRadarOperationalSafetyV98(html);"
+              s=s.replace(anchor,anchor+'\n'+apply)
+          check="if(!html.includes('radarVisitHoursSyncV99')||!html.includes('Weekly Prospecting OS V9.9'))throw new Error('V9.9 hours sync missing');"
+          if check not in s:
+              anchor="if(!html.includes('radarOperationalSafetyV98')||!html.includes('Weekly Prospecting OS V9.8')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');"
+              s=s.replace(anchor,anchor+'\n'+check)
+          s=s.replace("console.log('Radar Local V9.8.1 built:'","console.log('Radar Local V9.9 built:'")
+          p.write_text(s)
+          PY
+          node build-radar-v3.cjs
+          grep -q 'Radar Local — Weekly Prospecting OS V9.9' dist/index.html
+          grep -q 'radarVisitHoursSyncV99' dist/index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
+          git commit -m 'fix: publish Radar verified-hours itinerary V9.9' || true
+          git push origin radar-local-host
