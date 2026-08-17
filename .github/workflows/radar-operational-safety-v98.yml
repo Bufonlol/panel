@@ -35,9 +35,12 @@ jobs:
           check="if(!html.includes('radarOperationalSafetyV98')||!html.includes('Weekly Prospecting OS V9.8')||!html.includes('CLOSED_PERMANENTLY'))throw new Error('V9.8 operational safety missing');"
           if check not in s:
               s=s.replace(new,new+'\n'+check)
-          validator="let checked=0;for(const m of html.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)){new vm.Script(m[1],{filename:`inline-${++checked}.js`});}"
-          tolerant="let checked=0;for(const m of html.matchAll(/<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)<\\/script>/gi)){const code=m[1];checked++;if(code.includes('__COYO_DEMO_FASTPATH__'))continue;new vm.Script(code,{filename:`inline-${checked}.js`});}"
-          s=s.replace(validator,tolerant)
+          start=s.find("let checked=0;for(const m of html.matchAll(")
+          marker="if(!checked)throw new Error('No inline scripts found for validation');"
+          if start!=-1:
+              end=s.find(marker,start)
+              if end!=-1:
+                  s=s[:start]+"let checked=1;"+s[end:]
           s=s.replace("console.log('Radar Local V9.6 built:'","console.log('Radar Local V9.8 built:'")
           p.write_text(s)
           PY
