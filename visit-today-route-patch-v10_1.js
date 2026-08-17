@@ -42,7 +42,8 @@ new MutationObserver(decorate).observe(document.body,{childList:true,subtree:tru
 window.radarTodayRouteV101={version:'10.1',date:ROUTE_DATE,ids:IDS.slice(),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 `;
-html=html.replace('</style>',CSS+'</style>');
+const headPos=html.lastIndexOf('</head>');
+if(headPos>=0)html=html.slice(0,headPos)+'<style>'+CSS+'</style>'+html.slice(headPos);
 const pos=html.lastIndexOf('</body>');
 if(pos>=0)html=html.slice(0,pos)+'<script>'+JS+'</script>'+html.slice(pos);
 return html;
