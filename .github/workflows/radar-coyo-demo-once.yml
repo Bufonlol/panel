@@ -31,6 +31,7 @@ jobs:
           node build-radar-v3.cjs
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add build-radar-v3.cjs dist/index.html
+          git add build-radar-v3.cjs
+          git add -f dist/index.html
           git commit -m "feat: publish COYO cafe demos" || exit 0
           git push
