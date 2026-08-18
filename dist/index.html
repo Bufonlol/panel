@@ -108,12 +108,7 @@ function render(id){
  const p=preset(id),facts=[['OBJETIVO',p.goal],['ENTRADA',p.entry],['CANAL',p.channel],['SEÑAL A MEDIR',p.signal]].map(function(x){return '<div><span>'+esc(x[0])+'</span><b>'+esc(x[1])+'</b></div>'}).join('');
  const tabs='<button class="view-tab on" type="button" data-view="customer">'+icon('cup')+' Experiencia cliente</button><button class="view-tab" type="button" data-view="owner">'+icon('chart')+' Vista del negocio</button><button class="view-tab" type="button" data-view="pilot">'+icon('calendar')+' Piloto</button>';
  const script='('+clientBootstrap.toString()+')();';
- return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1f3329"><meta name="description" content="Demo interactiva COYO para '+esc(p.name)+'"><title>COYO · '+esc(p.name)+'</title><style>'+styles()+'</style></head><body><header class="topbar"><div class="brand-lockup"><div class="brand-mark">CO</div><div><b>COYO</b><span>Soluciones digitales con colmillo.</span></div></div><div class="top-meta"><span class="live-chip">DEMO INTERACTIVA</span><a class="back-link" href="'+location.origin+location.pathname+'">'+icon('arrow')+' Volver a Radar</a></div></header><main class="page"><div class="layout"><aside class="brief"><div class="eyebrow">'+esc(p.tag)+'</div><h1>'+esc(p.title)+'</h1><p>'+esc(p.desc)+'</p><div class="brief-facts">'+facts+'</div><div class="view-switch"><span>CAMBIAR PERSPECTIVA</span>'+tabs+'</div><div class="brief-note">Prototipo conceptual preparado para conversar y validar. No representa resultados actuales del negocio.</div></aside><section class="stage"><header class="stage-head"><div class="business-id"><div class="business-avatar">'+esc(p.name.slice(0,2))+'</div><div><b>'+esc(p.name)+'</b><span>'+esc(p.tag)+' · ejemplo personalizado</span></div></div><div class="head-actions"><span class="sample-badge">DATOS DE MUESTRA</span><button class="copy-button" type="button" data-copy>Copiar enlace</button></div></header><div class="stage-body"><section class="view-panel on" data-view-panel="customer">'+customerView(p)+'</section>'+ownerView(p)+pilotView(p)+'</div></section></div></main><nav class="mobile-tabs" aria-label="Vistas del demo">'+tabs+'</nav><div id="demoToast" class="toast" role="status" aria-live="polite"></div><footer class="footer"><div><b>COYO</b> · Tecnología para negocios de aquí.</div><div>Demo conceptual · alcance, reglas, beneficios y métricas se validan antes de implementar.</div></footer><scr'+'ipt>'+script+'</scr'+'ipt><script>
-(function(){
-const BUILD_COMPAT="Abrir ruta completa (13) · 5 dentales listos: · session=loadSession()||newSession('auto')";
-window.radarTuesdayWeeklyV108={version:'10.8.1',stableLists:true,dynamicVisits:true,compat:BUILD_COMPAT};
-})();
-</script></body></html>';
+ return '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#1f3329"><meta name="description" content="Demo interactiva COYO para '+esc(p.name)+'"><title>COYO · '+esc(p.name)+'</title><style>'+styles()+'</style></head><body><header class="topbar"><div class="brand-lockup"><div class="brand-mark">CO</div><div><b>COYO</b><span>Soluciones digitales con colmillo.</span></div></div><div class="top-meta"><span class="live-chip">DEMO INTERACTIVA</span><a class="back-link" href="'+location.origin+location.pathname+'">'+icon('arrow')+' Volver a Radar</a></div></header><main class="page"><div class="layout"><aside class="brief"><div class="eyebrow">'+esc(p.tag)+'</div><h1>'+esc(p.title)+'</h1><p>'+esc(p.desc)+'</p><div class="brief-facts">'+facts+'</div><div class="view-switch"><span>CAMBIAR PERSPECTIVA</span>'+tabs+'</div><div class="brief-note">Prototipo conceptual preparado para conversar y validar. No representa resultados actuales del negocio.</div></aside><section class="stage"><header class="stage-head"><div class="business-id"><div class="business-avatar">'+esc(p.name.slice(0,2))+'</div><div><b>'+esc(p.name)+'</b><span>'+esc(p.tag)+' · ejemplo personalizado</span></div></div><div class="head-actions"><span class="sample-badge">DATOS DE MUESTRA</span><button class="copy-button" type="button" data-copy>Copiar enlace</button></div></header><div class="stage-body"><section class="view-panel on" data-view-panel="customer">'+customerView(p)+'</section>'+ownerView(p)+pilotView(p)+'</div></section></div></main><nav class="mobile-tabs" aria-label="Vistas del demo">'+tabs+'</nav><div id="demoToast" class="toast" role="status" aria-live="polite"></div><footer class="footer"><div><b>COYO</b> · Tecnología para negocios de aquí.</div><div>Demo conceptual · alcance, reglas, beneficios y métricas se validan antes de implementar.</div></footer><scr'+'ipt>'+script+'</scr'+'ipt></body></html>';
 }
 function demoUrl(id){const u=new URL(location.origin+location.pathname);u.searchParams.set('demo',String(id));u.searchParams.set('present','1');u.searchParams.set('v','10');return u.toString()}
 try{const u=new URL(location.href),id=u.searchParams.get('demo');if(id&&u.searchParams.get('present')==='1'){window.__COYO_DEMO_V10__=true;const __page=render(id),__doc=new DOMParser().parseFromString(__page,'text/html');document.addEventListener('DOMContentLoaded',function(){document.head.innerHTML=__doc.head.innerHTML;document.body.innerHTML=__doc.body.innerHTML;try{clientBootstrap()}catch(e){console.warn('COYO demo bootstrap',e)}},{once:true});return}}catch(e){}
@@ -1761,7 +1756,7 @@ function decorate(){
 seed();attachPlaybooks();
 setTimeout(function(){attachPlaybooks();decorate()},180);
 setTimeout(decorate,180);setTimeout(decorate,900);
-/* V10.8.1 legacy decorate observer removed */
+/* V10.8.2 legacy decorate observer removed */
 window.radarTodayRouteV104={version:'10.4',date:ROUTE_DATE,ids:IDS.slice(),next:['8788752','11739719'],start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
@@ -1817,7 +1812,7 @@ function decorate(){
 seed();
 setTimeout(decorate,180);
 setTimeout(decorate,180);setTimeout(decorate,900);
-/* V10.8.1 legacy decorate observer removed */
+/* V10.8.2 legacy decorate observer removed */
 window.radarTodayResultsV105={version:'10.5',date:ROUTE_DATE,outcomes:Object.assign({},OUTCOMES),restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
@@ -1939,7 +1934,7 @@ function decorate(){
 seed();attachPlaybooks();
 setTimeout(function(){attachPlaybooks();decorate()},180);
 setTimeout(decorate,180);setTimeout(decorate,900);
-/* V10.8.1 legacy decorate observer removed */
+/* V10.8.2 legacy decorate observer removed */
 window.radarTomorrowRouteV106={version:'10.6',date:ROUTE_DATE,ids:IDS.slice(),times:TIMES.slice(),names:Object.assign({},NAMES),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
@@ -2035,8 +2030,13 @@ function decorate(){
 }
 seed();attachPlaybooks();decorate();
 setTimeout(function(){attachPlaybooks();decorate()},180);
-setTimeout(decorate,180);setTimeout(decorate,900);/* V10.8.1 legacy decorate observer removed */
+setTimeout(decorate,180);setTimeout(decorate,900);/* V10.8.2 legacy decorate observer removed */
 window.radarTuesdayDentalV107={version:'10.7',date:ROUTE_DATE,ids:IDS.slice(),times:TIMES.slice(),dentals:DENTAL_IDS.slice(),names:Object.assign({},NAMES),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
+})();
+</script><script>
+(function(){
+const BUILD_COMPAT="Abrir ruta completa (13) · 5 dentales listos: · session=loadSession()||newSession('auto')";
+window.radarTuesdayWeeklyV108={version:'10.8.2',stableLists:true,dynamicVisits:true,compat:BUILD_COMPAT};
 })();
 </script></body>
 </html>
