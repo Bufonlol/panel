@@ -3,59 +3,97 @@ const OLD_RENDER_ALL="function renderAll(fit=false){renderTodayV5();renderKPIs()
 const NEW_RENDER_ALL="function renderAll(fit=false){const m=typeof module!=='undefined'?module:'radar';if(m==='radar'){renderKPIs();renderNearby();renderInspector();drawMap(fit);return}if(m==='today'){renderTodayV5();renderInspector();return}if(m==='leads'){renderLeads();renderInspector();return}if(m==='pipeline'){renderPipeline();renderInspector();return}if(m==='verify'){renderVerify();renderInspector();return}if(m==='reports'){renderReports();renderSalesReportAddon();return}}";
 if(!html.includes(OLD_RENDER_ALL))throw new Error('V8.1: eager renderAll signature not found');
 html=html.replace(OLD_RENDER_ALL,NEW_RENDER_ALL);
+
+const MAP_VISIBLE="const z=map.getZoom(),bounds=map.getBounds().pad(.2),visible=rows.filter(b=>bounds.contains([b.lat,b.lng]));";
+const MAP_VISIBLE_OPT="const z=map.getZoom(),bounds=map.getBounds().pad(.2);let visible=rows.filter(b=>bounds.contains([b.lat,b.lng]));if(z>=15){const mobile=typeof matchMedia==='function'&&matchMedia('(max-width:760px)').matches,cap=mobile?140:320;if(visible.length>cap)visible=visible.slice().sort((a,b)=>(b.opportunityScore||0)-(a.opportunityScore||0)).slice(0,cap)}";
+if(html.includes(MAP_VISIBLE))html=html.replace(MAP_VISIBLE,MAP_VISIBLE_OPT);
+
+const LEADS_500="function renderLeads(){const d=filtered().slice().sort((a,b)=>b.opportunityScore-a.opportunityScore).slice(0,500);";
+const LEADS_OPT="function renderLeads(){const mobile=typeof matchMedia==='function'&&matchMedia('(max-width:760px)').matches,d=filtered().slice().sort((a,b)=>b.opportunityScore-a.opportunityScore).slice(0,mobile?160:500);";
+if(html.includes(LEADS_500))html=html.replace(LEADS_500,LEADS_OPT);
+
 const JS=String.raw`
 (function(){
 function perfLater(fn){if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{fn()}catch(e){console.warn('Radar render',e)}});else setTimeout(()=>{try{fn()}catch(e){console.warn('Radar render',e)}},0)}
+function withFilteredSnapshot(fn){
+  const base=typeof filtered==='function'?filtered:null;
+  let snapshot=null;
+  if(base)filtered=function(){return snapshot||(snapshot=base())};
+  try{return fn()}finally{if(base)filtered=base}
+}
 function renderActive(fit){
-  const m=typeof module!=='undefined'?module:'radar';
-  if(m==='radar'){
-    if(typeof renderKPIs==='function')renderKPIs();
-    if(typeof renderNearby==='function')renderNearby();
-    if(typeof renderInspector==='function')renderInspector();
-    if(typeof drawMap==='function')drawMap(!!fit);
-    return;
-  }
-  if(m==='today'){
-    if(typeof renderTodayV5==='function')renderTodayV5();
-    if(typeof renderInspector==='function')renderInspector();
-    return;
-  }
-  if(m==='leads'){
-    if(typeof renderLeads==='function')renderLeads();
-    if(typeof renderInspector==='function')renderInspector();
-    return;
-  }
-  if(m==='pipeline'){
-    if(typeof renderPipeline==='function')renderPipeline();
-    if(typeof renderInspector==='function')renderInspector();
-    return;
-  }
-  if(m==='verify'){
-    if(typeof renderVerify==='function')renderVerify();
-    if(typeof renderInspector==='function')renderInspector();
-    return;
-  }
-  if(m==='reports'){
-    if(typeof renderReports==='function')renderReports();
-    if(typeof renderSalesReportAddon==='function')renderSalesReportAddon();
-    return;
-  }
-  if(m==='week'){
-    perfLater(()=>{const active=document.querySelector('#v8Days [data-v8-day].on')||document.querySelector('#v8Days [data-v8-day]');if(active)active.click()});
-    return;
-  }
-  if(m==='rentals'){
-    perfLater(()=>{const active=document.querySelector('[data-v7-rfilter].on');if(active)active.click()});
+  return withFilteredSnapshot(()=>{
+    const m=typeof module!=='undefined'?module:'radar';
+    if(m==='radar'){
+      if(typeof renderKPIs==='function')renderKPIs();
+      if(typeof renderNearby==='function')renderNearby();
+      if(typeof renderInspector==='function')renderInspector();
+      if(typeof drawMap==='function')drawMap(!!fit);
+      return;
+    }
+    if(m==='today'){
+      if(typeof renderTodayV5==='function')renderTodayV5();
+      if(typeof renderInspector==='function')renderInspector();
+      return;
+    }
+    if(m==='leads'){
+      if(typeof renderLeads==='function')renderLeads();
+      if(typeof renderInspector==='function')renderInspector();
+      return;
+    }
+    if(m==='pipeline'){
+      if(typeof renderPipeline==='function')renderPipeline();
+      if(typeof renderInspector==='function')renderInspector();
+      return;
+    }
+    if(m==='verify'){
+      if(typeof renderVerify==='function')renderVerify();
+      if(typeof renderInspector==='function')renderInspector();
+      return;
+    }
+    if(m==='reports'){
+      if(typeof renderReports==='function')renderReports();
+      if(typeof renderSalesReportAddon==='function')renderSalesReportAddon();
+      return;
+    }
+    if(m==='week'){
+      perfLater(()=>{const active=document.querySelector('#v8Days [data-v8-day].on')||document.querySelector('#v8Days [data-v8-day]');if(active)active.click()});
+      return;
+    }
+    if(m==='rentals'){
+      perfLater(()=>{const active=document.querySelector('[data-v7-rfilter].on');if(active)active.click()});
+    }
+  })
+}
+renderAll=function(fit){return renderActive(fit)};
+
+if(typeof drawMap==='function'){
+  const drawMapPerfBase=drawMap;
+  let redrawTimer=0,redrawFrame=0,lastDrawAt=0;
+  const now=()=>typeof performance!=='undefined'&&performance.now?performance.now():Date.now();
+  function canDraw(){const el=document.getElementById('map');return !!el&&!!el.offsetParent&&(typeof module==='undefined'||module==='radar')}
+  drawMap=function(fit){
+    if(!canDraw())return;
+    clearTimeout(redrawTimer);
+    if(redrawFrame&&typeof cancelAnimationFrame==='function'){cancelAnimationFrame(redrawFrame);redrawFrame=0}
+    if(fit){lastDrawAt=now();return drawMapPerfBase(true)}
+    const delay=Math.max(0,140-(now()-lastDrawAt));
+    redrawTimer=setTimeout(()=>{
+      const run=()=>{redrawFrame=0;if(!canDraw())return;lastDrawAt=now();drawMapPerfBase(false)};
+      if(typeof requestAnimationFrame==='function')redrawFrame=requestAnimationFrame(run);else run();
+    },delay)
   }
 }
-renderAll=function(fit){renderActive(fit)};
+
 const setModulePerfBase=setModule;
 setModule=function(v){
   const r=setModulePerfBase(v);
-  if(['radar','today','leads','pipeline','verify','reports'].includes(v))perfLater(()=>renderActive(false));
+  // Radar already schedules its own map invalidation/draw in the base handler.
+  // Scheduling renderActive again here caused duplicate map work on every return to Radar.
+  if(['today','leads','pipeline','verify','reports'].includes(v))perfLater(()=>renderActive(false));
   return r;
 };
-window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1'};
+window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1',coalescedDraws:true,mobileMarkerCap:140};
 })();
 `;
 html=html.replace('</body>','<script>'+JS+'</script></body>');
