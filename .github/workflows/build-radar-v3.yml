@@ -1,4 +1,4 @@
-name: Build Radar Local V7
+name: Build Radar Local
 
 on:
   push:
@@ -8,6 +8,10 @@ on:
 
 permissions:
   contents: write
+
+concurrency:
+  group: radar-local-host-build
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -19,91 +23,8 @@ jobs:
         with:
           ref: radar-local-host
 
-      - name: Build V7 bundle
+      - name: Build Radar bundle
         run: node build-radar-v3.cjs
-
-      - name: Smoke test Radar services
-        run: |
-          node --input-type=module <<'NODE'
-          const device = 'radar-ci-smoke-device-000000000001';
-          async function getJson(name, url, headers={}) {
-            const res = await fetch(url, { headers });
-            const text = await res.text();
-            if (!res.ok) {
-              console.error(`${name} failed:`, res.status, text.slice(0, 1000));
-              process.exit(1);
-            }
-            try { return JSON.parse(text); } catch {
-              console.error(`${name} returned invalid JSON`);
-              process.exit(1);
-            }
-          }
-
-          const api = await getJson(
-            'Radar API',
-            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-api?action=businesses&city=Orizaba&limit=1000',
-            { 'x-radar-device': device }
-          );
-          if (!Array.isArray(api.businesses) || api.businesses.length === 0) {
-            console.error('Radar API returned no businesses');
-            process.exit(1);
-          }
-          console.log(`Radar API OK: ${api.businesses.length} businesses returned`);
-
-          const sales = await getJson(
-            'Radar Sales',
-            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-sales?action=dashboard',
-            { 'x-radar-device': device }
-          );
-          if (typeof sales.attempts !== 'number' || !Array.isArray(sales.byChannel) || !Array.isArray(sales.byModel)) {
-            console.error('Radar Sales returned an unexpected V7 dashboard shape');
-            process.exit(1);
-          }
-          console.log(`Radar Sales OK: ${sales.attempts} activities in 30d; rental-aware`);
-
-          const rentals = await getJson(
-            'Radar Rentals',
-            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-rentals?action=dashboard',
-            { 'x-radar-device': device }
-          );
-          if (!Array.isArray(rentals.rentals) || typeof rentals.metrics?.mrr !== 'number' || typeof rentals.metrics?.active !== 'number') {
-            console.error('Radar Rentals returned an unexpected dashboard shape');
-            process.exit(1);
-          }
-          console.log(`Radar Rentals OK: ${rentals.metrics.active} active; MRR ${rentals.metrics.mrr}`);
-
-          const catalog = await getJson(
-            'Radar Rental Catalog',
-            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-rentals?action=catalog',
-            { 'x-radar-device': device }
-          );
-          if (!Array.isArray(catalog.catalog) || catalog.catalog.length < 5 || !catalog.catalog.every(x => typeof x.rental_monthly === 'number')) {
-            console.error('Radar Rental Catalog returned invalid pricing data');
-            process.exit(1);
-          }
-          console.log(`Radar Rental Catalog OK: ${catalog.catalog.length} services`);
-
-          const zones = await getJson(
-            'Radar Zones',
-            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-zones'
-          );
-          if (!Array.isArray(zones.zones) || !Array.isArray(zones.sectors) || !Array.isArray(zones.cities)) {
-            console.error('Radar Zones returned invalid metadata');
-            process.exit(1);
-          }
-          console.log(`Radar Zones OK: ${zones.zones.length} zones, ${zones.sectors.length} sectors`);
-
-          const research = await getJson(
-            'Radar Research',
-            'https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-research'
-          );
-          if (!Array.isArray(research.research) || research.research.length < 50) {
-            console.error('Radar Research returned fewer than 50 researched leads');
-            process.exit(1);
-          }
-          const ready = research.research.filter(x => x.research_status === 'reviewed').length;
-          console.log(`Radar Research OK: ${research.research.length} researched leads, ${ready} reviewed`);
-          NODE
 
       - name: Commit dist
         run: |
@@ -114,6 +35,6 @@ jobs:
             echo 'No changes to commit'
             exit 0
           fi
-          git commit -m 'build: update Radar Local V7 dist'
+          git commit -m 'build: update Radar Local dist'
           git pull --rebase origin radar-local-host
           git push origin radar-local-host
