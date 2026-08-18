@@ -14,6 +14,33 @@ if(html.includes(LEADS_500))html=html.replace(LEADS_500,LEADS_OPT);
 
 const JS=String.raw`
 (function(){
+const NativeMutationObserver=window.MutationObserver;
+if(NativeMutationObserver&&!window.__radarVisitMutationGuard){
+  const visitDecor='.v90-hours,.v90-nohours,.v90-proposal-hours,.v90-qhours,.v90-plan-chip,.v91-qtime,.v91-qsub,.v91-agenda,.v91-summary,.v91-start-wrap,.v91-plan-btn';
+  const decorationNode=function(n){
+    if(!n)return true;
+    if(n.nodeType===1)return !!(n.matches?.(visitDecor)||n.closest?.(visitDecor));
+    const p=n.parentElement||n.parentNode;
+    return !!(p?.closest?.(visitDecor));
+  };
+  const decorationBatch=function(records){
+    return !!records?.length&&records.every(function(m){
+      const nodes=[...m.addedNodes,...m.removedNodes];
+      if(!nodes.length)return !!m.target?.closest?.(visitDecor);
+      return nodes.every(decorationNode);
+    });
+  };
+  function RadarMutationObserver(callback){
+    return new NativeMutationObserver(function(records,observer){
+      if(decorationBatch(records))return;
+      callback(records,observer);
+    });
+  }
+  RadarMutationObserver.prototype=NativeMutationObserver.prototype;
+  try{Object.setPrototypeOf(RadarMutationObserver,NativeMutationObserver)}catch{}
+  window.MutationObserver=RadarMutationObserver;
+  window.__radarVisitMutationGuard={version:'10.13',selector:visitDecor};
+}
 function perfLater(fn){if(typeof requestAnimationFrame==='function')requestAnimationFrame(()=>{try{fn()}catch(e){console.warn('Radar render',e)}});else setTimeout(()=>{try{fn()}catch(e){console.warn('Radar render',e)}},0)}
 function withFilteredSnapshot(fn){
   const base=typeof filtered==='function'?filtered:null;
@@ -93,7 +120,7 @@ setModule=function(v){
   if(['today','leads','pipeline','verify','reports'].includes(v))perfLater(()=>renderActive(false));
   return r;
 };
-window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1',coalescedDraws:true,mobileMarkerCap:140};
+window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1',coalescedDraws:true,mobileMarkerCap:140,visitMutationGuard:true};
 })();
 `;
 html=html.replace('</body>','<script>'+JS+'</script></body>');
