@@ -3,31 +3,39 @@ const SAFE_V10="const __page=render(id),__doc=new DOMParser().parseFromString(__
 const SAFE_V96="const __doc=new DOMParser().parseFromString(page,'text/html');document.addEventListener('DOMContentLoaded',function(){document.head.innerHTML=__doc.head.innerHTML;document.body.innerHTML=__doc.body.innerHTML},{once:true});return;";
 html=html.replace(/document\.open\(\);document\.write\(render\(id\)\);document\.close\(\);try\{window\.stop\(\)\}catch\(e\)\{\}return/g,SAFE_V10);
 html=html.replace(/document\.open\(\);document\.write\(page\);document\.close\(\);\s*try\{window\.stop\(\)\}catch\(e\)\{\}\s*return;/g,SAFE_V96);
-if(html.includes('document.write('))throw new Error('V10.8.4: unsafe document.write remains in Radar bundle');
+if(html.includes('document.write('))throw new Error('V10.8.5: unsafe document.write remains in Radar bundle');
 
 // Stability: remove legacy global render loops that can freeze Visitas on mobile.
-html=html.replaceAll("new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});","/* V10.8.4 legacy decorate observer removed */");
+html=html.replaceAll("new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});","/* V10.8.5 legacy decorate observer removed */");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;attachPlaybooks();decorate();if(tries>=24)clearInterval(timer)},500);","setTimeout(function(){attachPlaybooks();decorate()},180);");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;decorate();if(tries>=24)clearInterval(timer)},500);","setTimeout(decorate,180);");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;attachPlaybooks();decorate();if(tries>=30)clearInterval(timer)},500);","setTimeout(function(){attachPlaybooks();decorate()},180);");
 html=html.replace("const observer=new MutationObserver(function(){installMobileNav();installDesktopNav();installWeekEntry();repairDemoButtons()});setTimeout(function(){boot();const app=document.querySelector('.app')||document.body;observer.observe(app,{childList:true,subtree:true})},120);setInterval(repairDemoButtons,1200);","setTimeout(boot,120);");
 html=html.replace("const root=document.getElementById('visitsView')||document.body;new MutationObserver(function(){setTimeout(decorate,0)}).observe(root,{childList:true,subtree:true});setTimeout(decorate,250);setInterval(decorate,1000);","setTimeout(decorate,250);");
 
+// The 1,800-row mobile cap caused validIds() in V8.8 to shrink a prepared 13-stop
+// route down to whichever businesses happened to be in the first page. The heavy
+// render loops are already removed, so keep the full business universe for route integrity.
+html=html.replace("fetch(API+'?action=businesses&limit='+(typeof matchMedia==='function'&&matchMedia('(max-width:760px)').matches?1800:6000),{headers:H({})})","fetch(API+'?action=businesses&limit=6000',{headers:H({})})");
+
+// La Cereza no longer exists. Replace it in every legacy Tuesday route snapshot
+// with Fragolina so the visible banner/order and the actual session agree.
+html=html.replaceAll("'4408429','10771471','9785081','4294961'","'4408429','10771471','9318952','4294961'");
+html=html.replaceAll("'9785081':'La Cereza'","'9318952':'Fragolina'");
+html=html.replaceAll("'9785081':'CAFÉ · validar abierto; máximo 2 min'","'9318952':'CAFÉ · Fragolina · validar encargado/gerencia'");
+html=html.replaceAll('09:50 La Cereza','09:50 Fragolina');
+
 const JS=String.raw`
 (function(){
-const VERSION='10.8.4',ROUTE_DATE='2026-08-18',CLOSED_ID='9785081';
+const VERSION='10.8.5',ROUTE_DATE='2026-08-18',CLOSED_ID='9785081';
 const BUILD_COMPAT="Abrir ruta completa (13) · 5 dentales listos: · session=loadSession()||newSession('auto')";
-const ROUTE_CORE=['4408429','10771471','4294961','4293514','8259500','11281677','7199299','7197654','10821806','11610538','10198658','7197871'];
-const DENTAL_IDS=new Set(['4294961','4293514','8259500','10198658','7197871']);
+const ROUTE_IDS=['4408429','10771471','9318952','4294961','4293514','8259500','11281677','7199299','7197654','10821806','11610538','10198658','7197871'];
 const BASKET_KEY='radar_route_basket_v2',SESSION_KEY='radar_visit_session_v2_'+ROUTE_DATE,START_KEY='radar_visit_start_time_v91',VISITED_KEY='radar_visited_registry_v1';
-const KNOWN_VISITED=['bate y late','bate late','viva latte','breve','cafe la abuelita','cafeteria el gallo','wego coffee','cafe cafe bistro'];
 function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function read(k,f){try{const x=JSON.parse(localStorage.getItem(k)||'null');return x==null?f:x}catch{return f}}
 function normalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function rows(){try{return Array.isArray(data)?data:[]}catch{return[]}}
 function idOf(b){return String((b&&(b.denueId??b.denue_id??b.id))||'')}
-function isCafe(b){const t=normalize([b?.name,b?.activityClass,b?.activity,b?.sector].filter(Boolean).join(' '));return /cafe|cafeter|coffee|barra de cafe/.test(t)}
-function closed(b){return ['permanently_closed','temporarily_closed','not_found'].includes(String(b?.operationalStatus||''))}
 function registry(){const r=read(VISITED_KEY,{ids:{},names:{}});r.ids=r.ids||{};r.names=r.names||{};return r}
 function markFieldFacts(){
  const reg=registry(),at=new Date().toISOString();
@@ -38,29 +46,22 @@ function markFieldFacts(){
  localStorage.setItem(VISITED_KEY,JSON.stringify(reg));
  return reg;
 }
-function replacementCafe(){
- const reg=markFieldFacts(),blocked=new Set([...ROUTE_CORE,CLOSED_ID,...Object.keys(reg.ids||{})]);
- const list=rows().filter(function(b){const id=idOf(b),n=normalize(b?.name);if(!id||blocked.has(id)||closed(b)||!isCafe(b))return false;if(KNOWN_VISITED.some(function(x){return n.includes(normalize(x))}))return false;return true});
- list.sort(function(a,b){const ao=Number(b?.opportunityScore||0)-Number(a?.opportunityScore||0);if(ao)return ao;return Number(b?.confidenceScore||0)-Number(a?.confidenceScore||0)});
- return list[0]?idOf(list[0]):'';
-}
-function routeIds(){const replacement=replacementCafe(),ids=ROUTE_CORE.slice();if(replacement)ids.splice(2,0,replacement);return ids}
-function firstOpen(ids,done){for(let i=0;i<ids.length;i++)if(!done?.[ids[i]])return i;return 0}
+function firstOpen(done){for(let i=0;i<ROUTE_IDS.length;i++)if(!done?.[ROUTE_IDS[i]])return i;return 0}
 function restoreTuesday(){
  if(localDate()!==ROUTE_DATE)return false;
- const ids=routeIds(),prev=read(SESSION_KEY,{}),done=prev&&typeof prev.done==='object'?prev.done:{},oldIds=Array.isArray(prev?.ids)?prev.ids.map(String):[],oldIndex=Number(prev?.index)||0,currentId=oldIds[oldIndex]||'',sameIndex=ids.indexOf(currentId),index=sameIndex>=0?sameIndex:firstOpen(ids,done),at=new Date().toISOString();
+ const prev=read(SESSION_KEY,{}),done=prev&&typeof prev.done==='object'?prev.done:{},oldIds=Array.isArray(prev?.ids)?prev.ids.map(String):[],oldIndex=Number(prev?.index)||0,currentId=oldIds[oldIndex]||'',sameIndex=ROUTE_IDS.indexOf(currentId),index=sameIndex>=0?sameIndex:firstOpen(done),at=new Date().toISOString();
  delete done[CLOSED_ID];
- localStorage.setItem(BASKET_KEY,JSON.stringify(ids));
- localStorage.setItem(SESSION_KEY,JSON.stringify(Object.assign({},prev,{day:1,source:'basket',ids:ids,index:index,done:done,createdAt:prev?.createdAt||at,routeLabel:'Martes · 5 dentales + '+String(ids.length-5)+' cafeterías',routeVersion:VERSION,startTime:'09:00',fieldLog:Array.isArray(prev?.fieldLog)?prev.fieldLog:[]})));
+ localStorage.setItem(BASKET_KEY,JSON.stringify(ROUTE_IDS));
+ localStorage.setItem(SESSION_KEY,JSON.stringify(Object.assign({},prev,{day:1,source:'basket',ids:ROUTE_IDS.slice(),index:index,done:done,createdAt:prev?.createdAt||at,routeLabel:'Martes · 5 dentales + 8 cafeterías',routeVersion:VERSION,startTime:'09:00',fieldLog:Array.isArray(prev?.fieldLog)?prev.fieldLog:[]})));
  localStorage.setItem(START_KEY,'09:00');markFieldFacts();return true;
 }
 function refresh(){const changed=restoreTuesday();try{if(changed&&window.radarVisitModeV88?.render)window.radarVisitModeV88.render()}catch{}return changed}
-markFieldFacts();restoreTuesday();setTimeout(refresh,500);setTimeout(refresh,1600);
-window.radarTuesdayWeeklyV108={version:VERSION,stableLists:true,dynamicVisits:false,routeIds:routeIds,restore:restoreTuesday,refresh:refresh,markFieldFacts:markFieldFacts,closedId:CLOSED_ID,compat:BUILD_COMPAT};
+markFieldFacts();restoreTuesday();setTimeout(refresh,700);setTimeout(refresh,1800);setTimeout(refresh,3500);
+window.radarTuesdayWeeklyV108={version:VERSION,stableLists:true,dynamicVisits:false,routeIds:ROUTE_IDS.slice(),restore:restoreTuesday,refresh:refresh,markFieldFacts:markFieldFacts,closedId:CLOSED_ID,compat:BUILD_COMPAT};
 })();
 `;
 const bp=html.lastIndexOf('</body>');
-if(bp<0)throw new Error('V10.8.4: closing body not found');
+if(bp<0)throw new Error('V10.8.5: closing body not found');
 html=html.slice(0,bp)+'<script>'+JS+'</script>'+html.slice(bp);
 return html;
 };
