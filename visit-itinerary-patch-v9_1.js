@@ -35,9 +35,10 @@ function decorateQueue(){plan.forEach(function(x,i){const stop=document.querySel
 function decorateCurrent(){const root=document.getElementById('visitContent');if(!root)return;root.querySelector('.v91-agenda')?.remove();const id=currentId(),x=plan.find(function(p){return p.id===id});const card=root.querySelector('.visit-business');if(card&&x)card.insertAdjacentHTML('afterend',agendaHtml(x));let sum=document.getElementById('v91Summary');if(!sum){sum=document.createElement('div');sum.id='v91Summary';const shell=document.querySelector('#visitsView .visit-shell');shell?.parentElement?.insertBefore(sum,shell)}if(sum)sum.innerHTML=summaryHtml()}
 function replan(){if(busy)return;busy=true;setTimeout(function(){plan=build();decorateQueue();decorateCurrent();busy=false},20)}
 function boot(){installControls();replan()}
+function ownMutation(m){const nodes=[...m.addedNodes,...m.removedNodes].filter(function(n){return n.nodeType===1});if(!nodes.length)return false;return nodes.every(function(n){return n.matches?.('.v91-qtime,.v91-qsub,.v91-agenda,.v91-summary,.v91-start-wrap,.v91-plan-btn')})}
 document.addEventListener('click',function(e){if(e.target.closest?.('[data-v91-plan]')){replan();return}if(e.target.closest?.('[data-visit-rebuild],[data-visit-jump],[data-visit-next],[data-visit-prev]'))setTimeout(replan,120)});
-const root=document.getElementById('visitsView')||document.body;new MutationObserver(function(){installControls();setTimeout(replan,50)}).observe(root,{childList:true,subtree:true});setTimeout(boot,500);setInterval(function(){if(document.getElementById('visitsView')?.classList.contains('on'))replan()},60000);
-window.radarVisitItineraryV91={version:'9.1',replan:replan,getPlan:function(){return plan.slice()}};
+const root=document.getElementById('visitsView')||document.body;new MutationObserver(function(ms){if(ms.length&&ms.every(ownMutation))return;installControls();setTimeout(replan,50)}).observe(root,{childList:true,subtree:true});setTimeout(boot,500);setInterval(function(){if(document.getElementById('visitsView')?.classList.contains('on'))replan()},60000);
+window.radarVisitItineraryV91={version:'9.1.1',replan:replan,getPlan:function(){return plan.slice()}};
 })();
 `;
 html=html.replace('</style>',CSS+'</style>');
