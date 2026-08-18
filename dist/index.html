@@ -1306,7 +1306,7 @@ const root=document.getElementById('visitsView')||document.body;new MutationObse
 const API='https://zurfsqmqiwjnakkdsdlk.supabase.co/functions/v1/radar-research';
 const DAYS=['sun','mon','tue','wed','thu','fri','sat'];
 const hoursRows=new Map();let loading=false,loaded=false;
-function esc(v){return typeof safe==='function'?safe(v):String(v??'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]})}
+function esc(v){return typeof safe==='function'?safe(v):String(v??'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'})[c]})}
 function idOf(b){return String((b&&(b.denueId??b.denue_id??b.id))||'')}
 function all(){try{return Array.isArray(data)?data:[]}catch{return[]}}
 function biz(id){return all().find(function(b){return idOf(b)===String(id)})||null}
@@ -1331,7 +1331,8 @@ function decorateBusiness(){const root=document.getElementById('visitContent');i
 function decorateProposal(){const root=document.getElementById('visitContent');if(!root)return;const id=currentId(root),b=biz(id),pane=root.querySelector('.v89-pane[data-v89-pane="proposal"]');if(!b||!pane)return;pane.querySelector('.v90-proposal-hours')?.remove();if(!hoursFor(b))return;pane.insertAdjacentHTML('afterbegin','<div class="v90-proposal-hours"><div><span>Horario hoy</span><b>'+scheduleText(b)+'</b></div><div><span>Visita sugerida</span><b>'+esc(windowText(b))+'</b></div></div>')}
 function decorateQueue(){document.querySelectorAll('#visitQueue .visit-stop').forEach(function(stop){stop.querySelector('.v90-qhours')?.remove();const name=stop.querySelector('b')?.textContent?.trim();if(!name)return;const b=all().find(function(x){return String(x?.name||'').trim()===name});if(!b||!hoursFor(b))return;const target=stop.querySelector('span:nth-child(2)');if(target)target.insertAdjacentHTML('beforeend','<span class="v90-qhours">'+scheduleText(b)+' · ideal '+esc(windowText(b))+'</span>')})}
 function decorate(){setTimeout(function(){decorateBusiness();decorateProposal();decorateQueue()},0)}
-const root=document.getElementById('visitsView')||document.body;new MutationObserver(function(){decorate()}).observe(root,{childList:true,subtree:true});document.addEventListener('click',function(e){if(e.target.closest?.('[data-v89-toggle],[data-v89-tab],[data-visit-jump],[data-visit-next],[data-visit-prev]'))setTimeout(decorate,50)});setTimeout(function(){loadHours(false);decorate()},250);setInterval(function(){if(!loaded)loadHours(false);decorateBusiness();decorateQueue()},60000);window.radarVisitHoursV90={version:'9.0',refresh:function(){loaded=false;return loadHours(true)},decorate:decorate};
+function ownMutation(m){const nodes=[...m.addedNodes,...m.removedNodes].filter(function(n){return n.nodeType===1});if(!nodes.length)return false;return nodes.every(function(n){return n.matches?.('.v90-hours,.v90-nohours,.v90-proposal-hours,.v90-qhours,.v90-plan-chip')})}
+const root=document.getElementById('visitsView')||document.body;new MutationObserver(function(ms){if(ms.length&&ms.every(ownMutation))return;decorate()}).observe(root,{childList:true,subtree:true});document.addEventListener('click',function(e){if(e.target.closest?.('[data-v89-toggle],[data-v89-tab],[data-visit-jump],[data-visit-next],[data-visit-prev]'))setTimeout(decorate,50)});setTimeout(function(){loadHours(false);decorate()},250);setInterval(function(){if(!loaded)loadHours(false);decorateBusiness();decorateQueue()},60000);window.radarVisitHoursV90={version:'9.0.1',refresh:function(){loaded=false;return loadHours(true)},decorate:decorate};
 })();
 </script><script>
 (function(){
