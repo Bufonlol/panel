@@ -3,11 +3,10 @@ const SAFE_V10="const __page=render(id),__doc=new DOMParser().parseFromString(__
 const SAFE_V96="const __doc=new DOMParser().parseFromString(page,'text/html');document.addEventListener('DOMContentLoaded',function(){document.head.innerHTML=__doc.head.innerHTML;document.body.innerHTML=__doc.body.innerHTML},{once:true});return;";
 html=html.replace(/document\.open\(\);document\.write\(render\(id\)\);document\.close\(\);try\{window\.stop\(\)\}catch\(e\)\{\}return/g,SAFE_V10);
 html=html.replace(/document\.open\(\);document\.write\(page\);document\.close\(\);\s*try\{window\.stop\(\)\}catch\(e\)\{\}\s*return;/g,SAFE_V96);
-if(html.includes('document.write('))throw new Error('V10.8.1: unsafe document.write remains in Radar bundle');
+if(html.includes('document.write('))throw new Error('V10.8.2: unsafe document.write remains in Radar bundle');
 
-// Keep the stability fixes, but do not replace the normal dynamic visit lists
-// with a hard-coded field route. Visits/Week must continue using the live data.
-html=html.replaceAll("new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});","/* V10.8.1 legacy decorate observer removed */");
+// Keep stability fixes only. The visit/week lists stay dynamic and use live Radar data.
+html=html.replaceAll("new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});","/* V10.8.2 legacy decorate observer removed */");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;attachPlaybooks();decorate();if(tries>=24)clearInterval(timer)},500);","setTimeout(function(){attachPlaybooks();decorate()},180);");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;decorate();if(tries>=24)clearInterval(timer)},500);","setTimeout(decorate,180);");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;attachPlaybooks();decorate();if(tries>=30)clearInterval(timer)},500);","setTimeout(function(){attachPlaybooks();decorate()},180);");
@@ -17,9 +16,11 @@ html=html.replace("const root=document.getElementById('visitsView')||document.bo
 const JS=String.raw`
 (function(){
 const BUILD_COMPAT="Abrir ruta completa (13) · 5 dentales listos: · session=loadSession()||newSession('auto')";
-window.radarTuesdayWeeklyV108={version:'10.8.1',stableLists:true,dynamicVisits:true,compat:BUILD_COMPAT};
+window.radarTuesdayWeeklyV108={version:'10.8.2',stableLists:true,dynamicVisits:true,compat:BUILD_COMPAT};
 })();
 `;
-html=html.replace('</body>','<script>'+JS+'</script></body>');
+const bp=html.lastIndexOf('</body>');
+if(bp<0)throw new Error('V10.8.2: closing body not found');
+html=html.slice(0,bp)+'<script>'+JS+'</script>'+html.slice(bp);
 return html;
 };
