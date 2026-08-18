@@ -546,7 +546,7 @@ function setModule(v){module=v;document.querySelector('.app')?.classList.toggle(
 function exportCSV(){const d=filtered(),rows=[['Negocio','Ciudad','Giro','Oportunidad','Confianza','Presencia','Google','Web','Social','Estado','Teléfono','Email','CRM','Próxima acción'],...d.map(b=>[b.name,b.city,b.sector,b.opportunityScore,b.confidenceScore,b.presenceScore,googleLabels[b.googlePresenceStatus],webLabels[b.webPresenceStatus],socialLabels[b.socialPresenceStatus],operationalLabels[b.operationalStatus],b.phone||'',b.email||'',b.stage,b.nextAction||''])],csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='radar-local-v2.csv';a.click();URL.revokeObjectURL(a.href)}
 async function syncDenue(){const token=prompt('Pega tu token DENUE / INEGI. Sólo se usa durante la sincronización y no se guarda.');if(!token)return;const targets=state.city==='all'?['orizaba','cordoba']:[state.city.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()];toast('Sincronizando DENUE…');try{let n=0;for(const city of targets){const r=await fetch(API+'?action=sync',{method:'POST',headers:H({'Content-Type':'application/json','x-inegi-token':token}),body:JSON.stringify({city,maxRecords:6000})}),j=await r.json();if(!r.ok)throw Error(j.error||'Error DENUE');n+=j.upserted||0}await load(true);toast(n.toLocaleString('es-MX')+' registros sincronizados')}catch(e){alert(e.message)}}
 function rebuildSectors(){const sectors=[...new Set(data.map(b=>b.sector))].sort(),opts='<option value="all">Todos</option>'+sectors.map(s=>`<option>${safe(s)}</option>`).join('');$('#sector').innerHTML=opts;$('#mSector').innerHTML=opts;$('#sector').value=state.sector;$('#mSector').value=state.sector}
-async function load(fit=true){try{const r=await fetch(API+'?action=businesses&limit='+(typeof matchMedia==='function'&&matchMedia('(max-width:760px)').matches?1800:6000),{headers:H({})}),j=await r.json();if(!r.ok)throw Error(j.error||'No se pudieron cargar datos');data=(j.businesses||[]).map(applyOpportunityV3);truncated=!!j.truncated;rebuildSectors();if(!selected&&data.length)selected=data[0];else if(selected)selected=data.find(b=>b.denueId===selected.denueId)||data[0]||null;$('#sourceCount').textContent=data.length.toLocaleString('es-MX')+' negocios';$('#updatedText').textContent='Actualizado ahora';renderAll(fit)}catch(e){console.error(e);toast('Error al cargar datos')}}
+async function load(fit=true){try{const r=await fetch(API+'?action=businesses&limit=6000',{headers:H({})}),j=await r.json();if(!r.ok)throw Error(j.error||'No se pudieron cargar datos');data=(j.businesses||[]).map(applyOpportunityV3);truncated=!!j.truncated;rebuildSectors();if(!selected&&data.length)selected=data[0];else if(selected)selected=data.find(b=>b.denueId===selected.denueId)||data[0]||null;$('#sourceCount').textContent=data.length.toLocaleString('es-MX')+' negocios';$('#updatedText').textContent='Actualizado ahora';renderAll(fit)}catch(e){console.error(e);toast('Error al cargar datos')}}
 function syncMobile(){$('#mCity').value=state.city;$('#mSector').value=state.sector;$('#mOperational').value=state.operational;$('#mGoogle').value=state.google}
 function openDrawer(){syncMobile();$('#drawer').classList.add('on');$('#backdrop').classList.add('on')}function closeDrawer(){$('#drawer').classList.remove('on');$('#backdrop').classList.remove('on')}
 let timer;function filterRender(fit=false){clearTimeout(timer);timer=setTimeout(()=>renderAll(fit),90)}
@@ -1756,7 +1756,7 @@ function decorate(){
 seed();attachPlaybooks();
 setTimeout(function(){attachPlaybooks();decorate()},180);
 setTimeout(decorate,180);setTimeout(decorate,900);
-/* V10.8.4 legacy decorate observer removed */
+/* V10.8.5 legacy decorate observer removed */
 window.radarTodayRouteV104={version:'10.4',date:ROUTE_DATE,ids:IDS.slice(),next:['8788752','11739719'],start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
@@ -1812,7 +1812,7 @@ function decorate(){
 seed();
 setTimeout(decorate,180);
 setTimeout(decorate,180);setTimeout(decorate,900);
-/* V10.8.4 legacy decorate observer removed */
+/* V10.8.5 legacy decorate observer removed */
 window.radarTodayResultsV105={version:'10.5',date:ROUTE_DATE,outcomes:Object.assign({},OUTCOMES),restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
@@ -1826,7 +1826,7 @@ const SESSION_KEY='radar_visit_session_v2_'+ROUTE_DATE;
 const START_KEY='radar_visit_start_time_v91';
 const MARKER_KEY='radar_visit_route_seed_2026_08_18_v106';
 const NAMES={
- '4408429':'Vero','10771471':'Mr Rocco','9785081':'La Cereza','11281677':'Aroma Gourmet',
+ '4408429':'Vero','10771471':'Mr Rocco','9318952':'Fragolina','11281677':'Aroma Gourmet',
  '7199299':'María Bonita','7197654':'Cafenatlan','10821806':'Ameyalli','11610538':'Café Don Gerardo'
 };
 const NOTES={
@@ -1911,7 +1911,7 @@ function addPrep(page,shell,today){
  if(!page||!shell||page.querySelector('.v106-tomorrow-banner'))return;
  const banner=document.createElement('div');banner.className='v106-tomorrow-banner';
  banner.innerHTML=today===ROUTE_DATE?'<div><span>RUTA DE HOY · MARTES 18 · 09:00</span><b>8 cafeterías locales, en orden</b><small>Sin hoteles, cadenas ni compañías grandes. La Cereza y Don Gerardo son validación rápida: si no están abiertos, sigue sin esperar.</small></div><em>8 paradas</em>':'<div><span>MAÑANA · MARTES 18 · 09:00</span><b>Ruta de 8 cafeterías ya guardada</b><small>Vero y Mr Rocco van temprano para evitar el pico. Ameyalli queda después de seis entradas para que llegues con el discurso calentado.</small></div><em>LISTA</em>';
- const order=document.createElement('div');order.className='v106-route-order';order.innerHTML='<b>Orden:</b> 09:00 Vero → 09:25 Mr Rocco → 09:50 La Cereza → 10:15 Aroma → 10:35 María Bonita → 11:00 Cafenatlan → 11:25 Ameyalli → 11:50 Don Gerardo';
+ const order=document.createElement('div');order.className='v106-route-order';order.innerHTML='<b>Orden:</b> 09:00 Vero → 09:25 Mr Rocco → 09:50 Fragolina → 10:15 Aroma → 10:35 María Bonita → 11:00 Cafenatlan → 11:25 Ameyalli → 11:50 Don Gerardo';
  const script=document.createElement('div');script.className='v106-script';script.innerHTML='<b>Entrada de 10 segundos:</b> “Hola, ¿está la persona encargada? Estoy mostrando una idea para cafeterías locales; tarda 30 segundos.”';
  shell.parentElement.insertBefore(script,shell);shell.parentElement.insertBefore(order,script);shell.parentElement.insertBefore(banner,order);
 }
@@ -1934,7 +1934,7 @@ function decorate(){
 seed();attachPlaybooks();
 setTimeout(function(){attachPlaybooks();decorate()},180);
 setTimeout(decorate,180);setTimeout(decorate,900);
-/* V10.8.4 legacy decorate observer removed */
+/* V10.8.5 legacy decorate observer removed */
 window.radarTomorrowRouteV106={version:'10.6',date:ROUTE_DATE,ids:IDS.slice(),times:TIMES.slice(),names:Object.assign({},NAMES),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
@@ -1942,7 +1942,7 @@ window.radarTomorrowRouteV106={version:'10.6',date:ROUTE_DATE,ids:IDS.slice(),ti
 window.__RADAR_TUESDAY_DENTAL_V107__=true;
 const PREP_DATE='2026-08-17';
 const ROUTE_DATE='2026-08-18';
-const IDS=['4408429','10771471','9785081','4294961','4293514','8259500','11281677','7199299','7197654','10821806','11610538','10198658','7197871'];
+const IDS=['4408429','10771471','9318952','4294961','4293514','8259500','11281677','7199299','7197654','10821806','11610538','10198658','7197871'];
 const TIMES=['09:00','09:25','09:50','10:15','10:40','11:05','11:30','11:50','12:15','12:40','13:05','13:30','13:55'];
 const DENTAL_IDS=['4294961','4293514','8259500','10198658','7197871'];
 const DENTAL_SET=new Set(DENTAL_IDS);
@@ -1951,12 +1951,12 @@ const SESSION_KEY='radar_visit_session_v2_'+ROUTE_DATE;
 const START_KEY='radar_visit_start_time_v91';
 const MARKER_KEY='radar_visit_route_seed_2026_08_18_v107';
 const NAMES={
- '4408429':'Vero','10771471':'Mr Rocco','9785081':'La Cereza','4294961':'Orthodent','4293514':'Dental La Concordia','8259500':'Clínica Dental Nureña','11281677':'Aroma Gourmet','7199299':'María Bonita','7197654':'Cafenatlan','10821806':'Ameyalli','11610538':'Café Don Gerardo','10198658':'Clínica Dental Del Ángel','7197871':'Clínica Odontológica Mexicana'
+ '4408429':'Vero','10771471':'Mr Rocco','9318952':'Fragolina','4294961':'Orthodent','4293514':'Dental La Concordia','8259500':'Clínica Dental Nureña','11281677':'Aroma Gourmet','7199299':'María Bonita','7197654':'Cafenatlan','10821806':'Ameyalli','11610538':'Café Don Gerardo','10198658':'Clínica Dental Del Ángel','7197871':'Clínica Odontológica Mexicana'
 };
 const NOTES={
  '4408429':'CAFÉ · reintento antes del pico',
  '10771471':'CAFÉ · reintento · preguntar por encargado',
- '9785081':'CAFÉ · validar abierto; máximo 2 min',
+ '9318952':'CAFÉ · Fragolina · validar encargado/gerencia',
  '4294961':'DENTAL · llamar/validar horario · citas recurrentes',
  '4293514':'DENTAL · llamar antes · preguntar por quien lleva agenda',
  '8259500':'DENTAL · abre 10:00 · confirmaciones y ausencias',
@@ -2014,7 +2014,7 @@ function attachPlaybooks(){
 function addPrep(page,shell,today){
  if(!page||!shell||page.querySelector('.v107-route-banner'))return;
  const banner=document.createElement('div');banner.className='v107-route-banner';banner.innerHTML='<div><span>'+(today===ROUTE_DATE?'RUTA DE HOY':'MAÑANA')+' · MARTES 18 · GIRO PRINCIPAL DENTALES</span><b>5 dentales + 8 cafeterías ya ordenadas</b><small>Las cafeterías de 09:00 sirven de calentamiento mientras abren los consultorios. Dental comienza a las 10:15; Orthodent y La Concordia requieren llamada breve antes de llegar.</small></div><em>13 PARADAS</em>';
- const order=document.createElement('div');order.className='v107-route-order';order.innerHTML='<b>Orden:</b> 09:00 Vero → 09:25 Mr Rocco → 09:50 La Cereza → <b>10:15 Orthodent → 10:40 Dental La Concordia → 11:05 Dental Nureña</b> → 11:30 Aroma → 11:50 María Bonita → 12:15 Cafenatlan → 12:40 Ameyalli → 13:05 Don Gerardo → <b>13:30 Dental Del Ángel → 13:55 Clínica Odontológica Mexicana</b>';
+ const order=document.createElement('div');order.className='v107-route-order';order.innerHTML='<b>Orden:</b> 09:00 Vero → 09:25 Mr Rocco → 09:50 Fragolina → <b>10:15 Orthodent → 10:40 Dental La Concordia → 11:05 Dental Nureña</b> → 11:30 Aroma → 11:50 María Bonita → 12:15 Cafenatlan → 12:40 Ameyalli → 13:05 Don Gerardo → <b>13:30 Dental Del Ángel → 13:55 Clínica Odontológica Mexicana</b>';
  const scripts=document.createElement('div');scripts.className='v107-route-script';scripts.innerHTML='<div><b>Entrada dental:</b><br>“Trabajo con sistemas para clínicas que centralizan agenda, confirmaciones y seguimiento. ¿Está quien lleva la operación? Tarda 30 segundos.”</div><div><b>Entrada cafetería:</b><br>“Estoy mostrando una idea para cafeterías locales. ¿Está la persona encargada? Tarda 30 segundos.”</div>';
  shell.parentElement.insertBefore(scripts,shell);shell.parentElement.insertBefore(order,scripts);shell.parentElement.insertBefore(banner,order);
 }
@@ -2030,24 +2030,20 @@ function decorate(){
 }
 seed();attachPlaybooks();decorate();
 setTimeout(function(){attachPlaybooks();decorate()},180);
-setTimeout(decorate,180);setTimeout(decorate,900);/* V10.8.4 legacy decorate observer removed */
+setTimeout(decorate,180);setTimeout(decorate,900);/* V10.8.5 legacy decorate observer removed */
 window.radarTuesdayDentalV107={version:'10.7',date:ROUTE_DATE,ids:IDS.slice(),times:TIMES.slice(),dentals:DENTAL_IDS.slice(),names:Object.assign({},NAMES),start:'09:00',restore:function(){localStorage.removeItem(MARKER_KEY);seed();location.reload()}};
 })();
 </script><script>
 (function(){
-const VERSION='10.8.4',ROUTE_DATE='2026-08-18',CLOSED_ID='9785081';
+const VERSION='10.8.5',ROUTE_DATE='2026-08-18',CLOSED_ID='9785081';
 const BUILD_COMPAT="Abrir ruta completa (13) · 5 dentales listos: · session=loadSession()||newSession('auto')";
-const ROUTE_CORE=['4408429','10771471','4294961','4293514','8259500','11281677','7199299','7197654','10821806','11610538','10198658','7197871'];
-const DENTAL_IDS=new Set(['4294961','4293514','8259500','10198658','7197871']);
+const ROUTE_IDS=['4408429','10771471','9318952','4294961','4293514','8259500','11281677','7199299','7197654','10821806','11610538','10198658','7197871'];
 const BASKET_KEY='radar_route_basket_v2',SESSION_KEY='radar_visit_session_v2_'+ROUTE_DATE,START_KEY='radar_visit_start_time_v91',VISITED_KEY='radar_visited_registry_v1';
-const KNOWN_VISITED=['bate y late','bate late','viva latte','breve','cafe la abuelita','cafeteria el gallo','wego coffee','cafe cafe bistro'];
 function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function read(k,f){try{const x=JSON.parse(localStorage.getItem(k)||'null');return x==null?f:x}catch{return f}}
 function normalize(v){return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()}
 function rows(){try{return Array.isArray(data)?data:[]}catch{return[]}}
 function idOf(b){return String((b&&(b.denueId??b.denue_id??b.id))||'')}
-function isCafe(b){const t=normalize([b?.name,b?.activityClass,b?.activity,b?.sector].filter(Boolean).join(' '));return /cafe|cafeter|coffee|barra de cafe/.test(t)}
-function closed(b){return ['permanently_closed','temporarily_closed','not_found'].includes(String(b?.operationalStatus||''))}
 function registry(){const r=read(VISITED_KEY,{ids:{},names:{}});r.ids=r.ids||{};r.names=r.names||{};return r}
 function markFieldFacts(){
  const reg=registry(),at=new Date().toISOString();
@@ -2058,25 +2054,18 @@ function markFieldFacts(){
  localStorage.setItem(VISITED_KEY,JSON.stringify(reg));
  return reg;
 }
-function replacementCafe(){
- const reg=markFieldFacts(),blocked=new Set([...ROUTE_CORE,CLOSED_ID,...Object.keys(reg.ids||{})]);
- const list=rows().filter(function(b){const id=idOf(b),n=normalize(b?.name);if(!id||blocked.has(id)||closed(b)||!isCafe(b))return false;if(KNOWN_VISITED.some(function(x){return n.includes(normalize(x))}))return false;return true});
- list.sort(function(a,b){const ao=Number(b?.opportunityScore||0)-Number(a?.opportunityScore||0);if(ao)return ao;return Number(b?.confidenceScore||0)-Number(a?.confidenceScore||0)});
- return list[0]?idOf(list[0]):'';
-}
-function routeIds(){const replacement=replacementCafe(),ids=ROUTE_CORE.slice();if(replacement)ids.splice(2,0,replacement);return ids}
-function firstOpen(ids,done){for(let i=0;i<ids.length;i++)if(!done?.[ids[i]])return i;return 0}
+function firstOpen(done){for(let i=0;i<ROUTE_IDS.length;i++)if(!done?.[ROUTE_IDS[i]])return i;return 0}
 function restoreTuesday(){
  if(localDate()!==ROUTE_DATE)return false;
- const ids=routeIds(),prev=read(SESSION_KEY,{}),done=prev&&typeof prev.done==='object'?prev.done:{},oldIds=Array.isArray(prev?.ids)?prev.ids.map(String):[],oldIndex=Number(prev?.index)||0,currentId=oldIds[oldIndex]||'',sameIndex=ids.indexOf(currentId),index=sameIndex>=0?sameIndex:firstOpen(ids,done),at=new Date().toISOString();
+ const prev=read(SESSION_KEY,{}),done=prev&&typeof prev.done==='object'?prev.done:{},oldIds=Array.isArray(prev?.ids)?prev.ids.map(String):[],oldIndex=Number(prev?.index)||0,currentId=oldIds[oldIndex]||'',sameIndex=ROUTE_IDS.indexOf(currentId),index=sameIndex>=0?sameIndex:firstOpen(done),at=new Date().toISOString();
  delete done[CLOSED_ID];
- localStorage.setItem(BASKET_KEY,JSON.stringify(ids));
- localStorage.setItem(SESSION_KEY,JSON.stringify(Object.assign({},prev,{day:1,source:'basket',ids:ids,index:index,done:done,createdAt:prev?.createdAt||at,routeLabel:'Martes · 5 dentales + '+String(ids.length-5)+' cafeterías',routeVersion:VERSION,startTime:'09:00',fieldLog:Array.isArray(prev?.fieldLog)?prev.fieldLog:[]})));
+ localStorage.setItem(BASKET_KEY,JSON.stringify(ROUTE_IDS));
+ localStorage.setItem(SESSION_KEY,JSON.stringify(Object.assign({},prev,{day:1,source:'basket',ids:ROUTE_IDS.slice(),index:index,done:done,createdAt:prev?.createdAt||at,routeLabel:'Martes · 5 dentales + 8 cafeterías',routeVersion:VERSION,startTime:'09:00',fieldLog:Array.isArray(prev?.fieldLog)?prev.fieldLog:[]})));
  localStorage.setItem(START_KEY,'09:00');markFieldFacts();return true;
 }
 function refresh(){const changed=restoreTuesday();try{if(changed&&window.radarVisitModeV88?.render)window.radarVisitModeV88.render()}catch{}return changed}
-markFieldFacts();restoreTuesday();setTimeout(refresh,500);setTimeout(refresh,1600);
-window.radarTuesdayWeeklyV108={version:VERSION,stableLists:true,dynamicVisits:false,routeIds:routeIds,restore:restoreTuesday,refresh:refresh,markFieldFacts:markFieldFacts,closedId:CLOSED_ID,compat:BUILD_COMPAT};
+markFieldFacts();restoreTuesday();setTimeout(refresh,700);setTimeout(refresh,1800);setTimeout(refresh,3500);
+window.radarTuesdayWeeklyV108={version:VERSION,stableLists:true,dynamicVisits:false,routeIds:ROUTE_IDS.slice(),restore:restoreTuesday,refresh:refresh,markFieldFacts:markFieldFacts,closedId:CLOSED_ID,compat:BUILD_COMPAT};
 })();
 </script></body>
 </html>
