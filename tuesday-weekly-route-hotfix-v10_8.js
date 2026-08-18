@@ -3,58 +3,23 @@ const SAFE_V10="const __page=render(id),__doc=new DOMParser().parseFromString(__
 const SAFE_V96="const __doc=new DOMParser().parseFromString(page,'text/html');document.addEventListener('DOMContentLoaded',function(){document.head.innerHTML=__doc.head.innerHTML;document.body.innerHTML=__doc.body.innerHTML},{once:true});return;";
 html=html.replace(/document\.open\(\);document\.write\(render\(id\)\);document\.close\(\);try\{window\.stop\(\)\}catch\(e\)\{\}return/g,SAFE_V10);
 html=html.replace(/document\.open\(\);document\.write\(page\);document\.close\(\);\s*try\{window\.stop\(\)\}catch\(e\)\{\}\s*return;/g,SAFE_V96);
-if(html.includes('document.write('))throw new Error('V10.16: unsafe document.write remains in Radar bundle');
-html=html.replaceAll("new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});","/* V10.16 legacy visit observer removed */");
+if(html.includes('document.write('))throw new Error('V10.8.1: unsafe document.write remains in Radar bundle');
+
+// Keep the stability fixes, but do not replace the normal dynamic visit lists
+// with a hard-coded field route. Visits/Week must continue using the live data.
+html=html.replaceAll("new MutationObserver(decorate).observe(document.body,{childList:true,subtree:true});","/* V10.8.1 legacy decorate observer removed */");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;attachPlaybooks();decorate();if(tries>=24)clearInterval(timer)},500);","setTimeout(function(){attachPlaybooks();decorate()},180);");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;decorate();if(tries>=24)clearInterval(timer)},500);","setTimeout(decorate,180);");
 html=html.replaceAll("let tries=0,timer=setInterval(function(){tries++;attachPlaybooks();decorate();if(tries>=30)clearInterval(timer)},500);","setTimeout(function(){attachPlaybooks();decorate()},180);");
 html=html.replace("const observer=new MutationObserver(function(){installMobileNav();installDesktopNav();installWeekEntry();repairDemoButtons()});setTimeout(function(){boot();const app=document.querySelector('.app')||document.body;observer.observe(app,{childList:true,subtree:true})},120);setInterval(repairDemoButtons,1200);","setTimeout(boot,120);");
 html=html.replace("const root=document.getElementById('visitsView')||document.body;new MutationObserver(function(){setTimeout(decorate,0)}).observe(root,{childList:true,subtree:true});setTimeout(decorate,250);setInterval(decorate,1000);","setTimeout(decorate,250);");
-html=html.replace("root.innerHTML='<div class=\"visit-empty\"><div><h2>Cargando prospectos…</h2><p>Radar está preparando los datos del mapa y la investigación.</p></div></div>';setTimeout(render,700);return","root.innerHTML='<div class=\"visit-empty\"><div><h2>Cargando datos generales…</h2><p>La ruta de campo ligera está disponible aunque el mapa siga cargando.</p></div></div>';updateHeader();return");
-const CSS=`
-/* Radar Local V10.16 — modo visitas ligero */
-.rvl-page{height:100%;overflow:auto;padding:16px 16px 110px;background:#f5f7fb;color:#172033}.rvl-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px}.rvl-kicker{font-size:9px;font-weight:950;letter-spacing:.08em;color:#1769e0}.rvl-head h1{font-size:26px;line-height:1.05;margin:3px 0 5px;letter-spacing:-.04em}.rvl-head p{font-size:9px;color:#748195;margin:0;line-height:1.5}.rvl-badge{flex:0 0 auto;padding:7px 9px;border-radius:999px;background:#e9f8f1;color:#08764a;font-size:8px;font-weight:900}.rvl-note{padding:10px 11px;border:1px solid #d9e3ef;border-radius:11px;background:#fff;font-size:8px;line-height:1.5;color:#5d6d82;margin-bottom:10px}.rvl-note b{color:#263b57}.rvl-shell{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:10px}.rvl-card,.rvl-route{background:#fff;border:1px solid #e1e7ef;border-radius:14px;box-shadow:0 8px 24px rgba(28,44,76,.05)}.rvl-card{padding:14px}.rvl-route{padding:10px;align-self:start}.rvl-type{display:inline-flex;padding:4px 7px;border-radius:999px;font-size:7px;font-weight:950}.rvl-type.cafe{background:#fff5df;color:#8a631e}.rvl-type.dental{background:#eaf3ff;color:#315f91}.rvl-card h2{font-size:23px;margin:8px 0 4px;letter-spacing:-.04em}.rvl-card>p{font-size:9px;color:#6e7c90;margin:0}.rvl-script{margin-top:12px;padding:11px;border-radius:10px;background:#f8fbff;border:1px solid #dbe8f7;font-size:10px;line-height:1.55;color:#40546e}.rvl-actions{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:7px;margin-top:11px}.rvl-btn{border:1px solid #dfe6ef;background:#fff;border-radius:10px;padding:11px 9px;font-size:9px;font-weight:900;color:#4b5d74}.rvl-btn.primary{background:#1769e0;border-color:#1769e0;color:#fff}.rvl-btn.done{background:#edf9f3;border-color:#bfe5d2;color:#08764a}.rvl-nav{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}.rvl-route h3{font-size:10px;margin:2px 3px 8px}.rvl-list{display:grid;gap:5px}.rvl-stop{width:100%;display:grid;grid-template-columns:26px minmax(0,1fr) auto;gap:7px;align-items:center;text-align:left;border:1px solid #edf1f5;background:#fff;border-radius:9px;padding:7px;color:#263448}.rvl-stop.on{border-color:#98bce9;background:#f4f8ff}.rvl-stop.done{border-color:#c9e5d7;background:#f4fbf7}.rvl-num{width:24px;height:24px;border-radius:8px;background:#edf2f8;display:grid;place-items:center;font-size:7px;font-weight:950}.rvl-stop b{display:block;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rvl-stop small{display:block;font-size:6.5px;color:#7b8797;margin-top:1px}.rvl-state{font-size:12px}.rvl-visited{margin-top:9px;padding:8px;border-radius:9px;background:#f7f8fa;color:#707b89;font-size:6.8px;line-height:1.5}
-@media(max-width:900px){.rvl-shell{grid-template-columns:1fr}.rvl-route{order:2}.rvl-list{display:flex;overflow:auto;padding-bottom:3px}.rvl-stop{flex:0 0 195px}.rvl-page{padding:14px 12px 105px}.rvl-head h1{font-size:24px}}
-@media(max-width:600px){.rvl-head{align-items:flex-start}.rvl-actions{grid-template-columns:1fr 1fr}.rvl-actions .primary{grid-column:1/-1}.rvl-badge{font-size:7px}.rvl-card h2{font-size:21px}}
-`;
+
 const JS=String.raw`
 (function(){
-if(window.__RADAR_VISIT_LITE_V1016__)return;window.__RADAR_VISIT_LITE_V1016__=true;
-const VERSION='10.16',TODAY='2026-08-18',STORE='radar_visit_lite_2026_08_18';
 const BUILD_COMPAT="Abrir ruta completa (13) · 5 dentales listos: · session=loadSession()||newSession('auto')";
-const ROUTE=[
- {key:'mr-rocco',name:'Mr Rocco',kind:'cafe'},
- {key:'nurena',name:'Clínica Dental Nureña',kind:'dental'},
- {key:'maria-bonita',name:'María Bonita',kind:'cafe'},
- {key:'del-angel',name:'Clínica Dental Del Ángel',kind:'dental'},
- {key:'don-gerardo',name:'Café Don Gerardo',kind:'cafe'},
- {key:'odontologica-mexicana',name:'Clínica Odontológica Mexicana',kind:'dental'},
- {key:'neutral',name:'Neutral',kind:'cafe'},
- {key:'orthodent',name:'Orthodent',kind:'dental'},
- {key:'vero',name:'Cafetería Vero',kind:'cafe'},
- {key:'la-concordia',name:'Dental La Concordia',kind:'dental'}
-];
-const ALREADY=['Cafetería El Gallo','Ameyalli','Café La Abuelita','Cafenatlán','Vive Café Veracruz','Wego Coffee & Beer','Café Café Bistro','Breve','Viva Latte','Bate y Late'];
-function localDate(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function read(){try{const x=JSON.parse(localStorage.getItem(STORE)||'null');return x&&typeof x==='object'?x:{index:0,done:{}}}catch{return{index:0,done:{}}}}
-let state=read();state.done=state.done||{};if(!Number.isInteger(state.index))state.index=0;
-function save(){localStorage.setItem(STORE,JSON.stringify(state))}
-function esc(v){return String(v||'').replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'})[c]})}
-function scriptFor(x){return x.kind==='dental'?'Trabajo con sistemas para clínicas que centralizan agenda, confirmaciones y seguimiento. ¿Está quien lleva la operación? Tarda 30 segundos.':'Estoy mostrando una idea sencilla para cafeterías locales para que los clientes regresen y pidan directo. ¿Está la persona encargada? Tarda 30 segundos.'}
-function statusCount(){return ROUTE.filter(function(x){return state.done[x.key]}).length}
-function nextPending(from,dir){const n=ROUTE.length;for(let s=1;s<=n;s++){const i=(from+dir*s+n)%n;if(!state.done[ROUTE[i].key])return i}return Math.max(0,Math.min(n-1,from))}
-function ensureView(){let v=document.getElementById('visitsView');if(!v){const main=document.querySelector('.main');if(!main)return null;v=document.createElement('section');v.id='visitsView';v.className='view';main.appendChild(v)}return v}
-function render(){const v=ensureView();if(!v)return;state.index=Math.max(0,Math.min(ROUTE.length-1,state.index));const x=ROUTE[state.index],done=state.done[x.key],count=statusCount();v.innerHTML='<div class="rvl-page"><div class="rvl-head"><div><div class="rvl-kicker">MODO VISITAS · V'+VERSION+'</div><h1>Salir a vender</h1><p>Martes · ruta ligera. No espera la carga completa del mapa.</p></div><div class="rvl-badge">'+count+'/'+ROUTE.length+' gestionados</div></div><div class="rvl-note"><b>Ya depurado:</b> no repite las cafeterías que ya recorriste. <b>Neutral sigue pendiente.</b></div><div class="rvl-shell"><main class="rvl-card"><span class="rvl-type '+x.kind+'">'+(x.kind==='dental'?'DENTAL':'CAFETERÍA')+'</span><h2>'+esc(x.name)+'</h2><p>Orizaba, Veracruz · parada '+(state.index+1)+' de '+ROUTE.length+(done?' · '+esc(done.label):'')+'</p><div class="rvl-script"><b>Entrada:</b> '+esc(scriptFor(x))+'</div><div class="rvl-actions"><button class="rvl-btn primary" data-rvl-map="'+state.index+'">Abrir Maps</button><button class="rvl-btn done" data-rvl-done="'+state.index+'">✓ Visitado</button><button class="rvl-btn" data-rvl-skip="'+state.index+'">Saltar</button></div><div class="rvl-nav"><button class="rvl-btn" data-rvl-prev>← Anterior</button><button class="rvl-btn" data-rvl-next>Siguiente →</button></div></main><aside class="rvl-route"><h3>Ruta pendiente · 5 cafés + 5 dentales</h3><div class="rvl-list">'+ROUTE.map(function(r,i){const d=state.done[r.key];return'<button class="rvl-stop'+(i===state.index?' on':'')+(d?' done':'')+'" data-rvl-jump="'+i+'"><span class="rvl-num">'+(i+1)+'</span><span><b>'+esc(r.name)+'</b><small>'+(r.kind==='dental'?'Dental':'Cafetería')+'</small></span><span class="rvl-state">'+(d?(d.status==='skip'?'↷':'✓'):'')+'</span></button>'}).join('')+'</div><div class="rvl-visited"><b>Ya fuera de pendientes:</b> '+ALREADY.map(esc).join(' · ')+'</div></aside></div></div>'}
-function show(){const v=ensureView();if(!v)return;try{module='visits'}catch{};document.querySelectorAll('.view').forEach(function(n){n.classList.remove('on')});v.classList.add('on');document.querySelectorAll('.navbtn').forEach(function(n){n.classList.toggle('on',n.dataset.module==='visits')});document.querySelectorAll('[data-mmodule],[data-v871-module]').forEach(function(n){const val=n.dataset.mmodule||n.dataset.v871Module;n.classList.toggle('on',val==='visits')});render()}
-function openMaps(i){const x=ROUTE[Number(i)||0];if(!x)return;window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(x.name+' Orizaba Veracruz'),'_blank','noopener')}
-function mark(i,status,label){i=Number(i)||0;const x=ROUTE[i];if(!x)return;state.done[x.key]={status:status,label:label,at:new Date().toISOString()};state.index=nextPending(i,1);save();render()}
-document.addEventListener('click',function(e){const t=e.target.closest&&e.target.closest('[data-rvl-map],[data-rvl-done],[data-rvl-skip],[data-rvl-prev],[data-rvl-next],[data-rvl-jump]');if(!t)return;if(t.dataset.rvlMap!=null){openMaps(t.dataset.rvlMap);return}if(t.dataset.rvlDone!=null){mark(t.dataset.rvlDone,'done','Visitado');return}if(t.dataset.rvlSkip!=null){mark(t.dataset.rvlSkip,'skip','Saltado');return}if(t.hasAttribute('data-rvl-prev')){state.index=(state.index-1+ROUTE.length)%ROUTE.length;save();render();return}if(t.hasAttribute('data-rvl-next')){state.index=nextPending(state.index,1);save();render();return}if(t.dataset.rvlJump!=null){state.index=Math.max(0,Math.min(ROUTE.length-1,Number(t.dataset.rvlJump)||0));save();render();return}});
-const legacySet=typeof setModule==='function'?setModule:null;const liteSet=function(v){if(v==='visits'&&localDate()===TODAY){show();return}return legacySet?legacySet.apply(this,arguments):undefined};try{setModule=liteSet}catch{};try{window.setModule=liteSet}catch{};
-if(window.radarVisitModeV88)window.radarVisitModeV88.open=show;
-window.radarVisitLiteV1016={version:VERSION,route:ROUTE.slice(),already:ALREADY.slice(),open:show,render:render};
+window.radarTuesdayWeeklyV108={version:'10.8.1',stableLists:true,dynamicVisits:true,compat:BUILD_COMPAT};
 })();
 `;
-const hp=html.lastIndexOf('</head>');if(hp>=0)html=html.slice(0,hp)+'<style>'+CSS+'</style>'+html.slice(hp);
-const bp=html.lastIndexOf('</body>');if(bp>=0)html=html.slice(0,bp)+'<script>'+JS+'</script>'+html.slice(bp);
+html=html.replace('</body>','<script>'+JS+'</script></body>');
 return html;
 };
