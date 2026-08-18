@@ -4,6 +4,12 @@ const NEW_RENDER_ALL="function renderAll(fit=false){const m=typeof module!=='und
 if(!html.includes(OLD_RENDER_ALL))throw new Error('V8.1: eager renderAll signature not found');
 html=html.replace(OLD_RENDER_ALL,NEW_RENDER_ALL);
 
+// Mobile field use does not need to block on all 6,000 rows before lists become usable.
+// Desktop keeps the full universe; mobile gets a large enough working set for prospecting.
+const OLD_DATA_LOAD="fetch(API+'?action=businesses&limit=6000',{headers:H({})})";
+const NEW_DATA_LOAD="fetch(API+'?action=businesses&limit='+(typeof matchMedia==='function'&&matchMedia('(max-width:760px)').matches?1800:6000),{headers:H({})})";
+if(html.includes(OLD_DATA_LOAD))html=html.replace(OLD_DATA_LOAD,NEW_DATA_LOAD);
+
 const MAP_VISIBLE="const z=map.getZoom(),bounds=map.getBounds().pad(.2),visible=rows.filter(b=>bounds.contains([b.lat,b.lng]));";
 const MAP_VISIBLE_OPT="const z=map.getZoom(),bounds=map.getBounds().pad(.2);let visible=rows.filter(b=>bounds.contains([b.lat,b.lng]));if(z>=15){const mobile=typeof matchMedia==='function'&&matchMedia('(max-width:760px)').matches,cap=mobile?140:320;if(visible.length>cap)visible=visible.slice().sort((a,b)=>(b.opportunityScore||0)-(a.opportunityScore||0)).slice(0,cap)}";
 if(html.includes(MAP_VISIBLE))html=html.replace(MAP_VISIBLE,MAP_VISIBLE_OPT);
@@ -120,7 +126,7 @@ setModule=function(v){
   if(['today','leads','pipeline','verify','reports'].includes(v))perfLater(()=>renderActive(false));
   return r;
 };
-window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1',coalescedDraws:true,mobileMarkerCap:140,visitMutationGuard:true};
+window.radarPerfV81={renderActive:()=>renderActive(false),version:'8.1',coalescedDraws:true,mobileMarkerCap:140,visitMutationGuard:true,mobileBusinessLimit:1800};
 })();
 `;
 html=html.replace('</body>','<script>'+JS+'</script></body>');
